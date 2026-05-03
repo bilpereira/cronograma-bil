@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 Cronograma de Conteúdo · multi-nicho + nuvem</title>
+    <title>📅 Cronograma de Conteúdo + 💡 Banco de Ideias</title>
     <style>
         * {
             box-sizing: border-box;
@@ -56,22 +56,6 @@
         .nicho-btn.active {
             background: #FF9F4A;
             color: #0F0F12;
-        }
-        .month-picker {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            background: #22222C;
-            padding: 5px 12px;
-            border-radius: 40px;
-        }
-        .month-picker button {
-            background: none;
-            border: none;
-            color: #FFD966;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0 6px;
         }
         .view-tabs {
             display: flex;
@@ -168,6 +152,72 @@
         .status-postado { background: #1F6E4A; color: #C0FFB0; }
         .status-gravar { background: #B45F2B; color: #FFD7A0; }
         .status-ideia { background: #4A4A6A; color: #CCC; }
+
+        /* Estilos para a aba Ideias */
+        .ideias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .ideia-card {
+            background: #1A1A24;
+            border-radius: 20px;
+            padding: 16px;
+            border-left: 5px solid #FF9F4A;
+            transition: 0.1s;
+        }
+        .ideia-card.alta { border-left-color: #F07070; }
+        .ideia-card.media { border-left-color: #FFD966; }
+        .ideia-card.baixa { border-left-color: #44D4A0; }
+        .ideia-titulo {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .ideia-desc {
+            font-size: 12px;
+            color: #BBB;
+            margin-bottom: 10px;
+        }
+        .ideia-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        .ideia-meta span {
+            background: #2A2A36;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .ideia-status {
+            display: inline-block;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #3A3A4A;
+        }
+        .ideia-status.nova { background: #4A6E8A; }
+        .ideia-status.dev { background: #B45F2B; }
+        .ideia-status.agend { background: #2A7F6E; }
+        .ideia-status.pub { background: #1F6E4A; }
+        .ideia-actions {
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .ideia-actions button {
+            background: #2C2C3A;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 16px;
+            cursor: pointer;
+            color: white;
+            font-size: 11px;
+        }
         .modal-overlay {
             display: none;
             position: fixed;
@@ -265,12 +315,20 @@
             cursor: pointer;
             color: white;
         }
+        .add-ideia-btn {
+            background: #FF9F4A;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="top-bar">
-        <div class="logo">📅 CRONOGRAMA · multi-nicho</div>
+        <div class="logo">📅 CRONOGRAMA + 💡 IDEIAS</div>
         <div class="nicho-selector" id="nicho-selector"></div>
         <button class="add-nicho-btn" id="add-nicho-btn">+ Novo Nicho</button>
         <div class="action-buttons">
@@ -280,93 +338,80 @@
             <button class="btn-icon" id="load-cloud">⬇️ Carregar nuvem</button>
         </div>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <div class="month-picker">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+        <div class="month-picker" id="month-picker-container" style="display: flex; gap: 8px; align-items: center;">
             <button id="prev-month">◀</button>
             <span id="month-year" style="min-width: 100px; text-align: center;">Abril 2025</span>
             <button id="next-month">▶</button>
             <button id="new-month" class="btn-icon" style="background:#2A4F6E;">📅 Novo mês</button>
         </div>
         <div class="view-tabs">
-            <button class="view-btn active" data-view="semanal">📆 Semanal</button>
+            <button class="view-btn" data-view="semanal">📆 Semanal</button>
             <button class="view-btn" data-view="mensal">📅 Mensal</button>
+            <button class="view-btn" data-view="ideias">💡 Ideias</button>
         </div>
     </div>
 
-    <div class="filter-tags" id="filter-tags-container">
+    <div class="filter-tags" id="filter-tags-container" style="display: none;">
         <span class="filter-label">🏷️ Filtrar por tag:</span>
         <div id="active-tags-filter" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
         <button class="clear-filters" id="clear-filters">Limpar</button>
     </div>
 
-    <div class="table-wrapper" id="table-container"></div>
+    <div id="table-container"></div>
 </div>
 
+<!-- MODAL DE CONTEÚDO (cronograma) -->
 <div id="content-modal" class="modal-overlay">
     <div class="modal">
         <h3>✏️ Editar conteúdo</h3>
-        <div class="form-group">
-            <label>Título</label>
-            <input type="text" id="modal-titulo" placeholder="Título do vídeo/post">
-        </div>
-        <div class="form-group">
-            <label>Descrição / Roteiro</label>
-            <textarea id="modal-desc" rows="3" placeholder="O que será abordado..."></textarea>
-        </div>
-        <div class="form-group">
-            <label>Link (YouTube, Drive, etc)</label>
-            <input type="url" id="modal-link" placeholder="https://...">
-        </div>
-        <div class="form-group">
-            <label>Tags (separadas por vírgula)</label>
-            <input type="text" id="modal-tags" placeholder="ex: tutorial, dicas, produto">
-        </div>
-        <div class="form-group">
-            <label>Status</label>
-            <select id="modal-status">
-                <option value="postado">✅ Postado</option>
-                <option value="gravar">🎬 A gravar</option>
-                <option value="ideia">💭 Ideia</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Duração (opcional)</label>
-            <input type="text" id="modal-duracao" placeholder="10min">
-        </div>
-        <div class="modal-footer">
-            <button class="btn-modal" id="modal-cancel">Cancelar</button>
-            <button class="btn-modal btn-primary" id="modal-save">Salvar</button>
-        </div>
+        <div class="form-group"><label>Título</label><input type="text" id="modal-titulo"></div>
+        <div class="form-group"><label>Descrição / Roteiro</label><textarea id="modal-desc" rows="3"></textarea></div>
+        <div class="form-group"><label>Link</label><input type="url" id="modal-link"></div>
+        <div class="form-group"><label>Tags</label><input type="text" id="modal-tags" placeholder="ex: tutorial, dicas"></div>
+        <div class="form-group"><label>Status</label><select id="modal-status"><option value="postado">✅ Postado</option><option value="gravar">🎬 A gravar</option><option value="ideia">💭 Ideia</option></select></div>
+        <div class="form-group"><label>Duração</label><input type="text" id="modal-duracao"></div>
+        <div class="modal-footer"><button class="btn-modal" id="modal-cancel">Cancelar</button><button class="btn-modal btn-primary" id="modal-save">Salvar</button></div>
+    </div>
+</div>
+
+<!-- MODAL DE IDEIA -->
+<div id="ideia-modal" class="modal-overlay">
+    <div class="modal">
+        <h3>💡 Nova Ideia</h3>
+        <div class="form-group"><label>Título</label><input type="text" id="ideia-titulo"></div>
+        <div class="form-group"><label>Descrição</label><textarea id="ideia-desc" rows="3"></textarea></div>
+        <div class="form-group"><label>Canal sugerido</label><input type="text" id="ideia-canal" placeholder="YouTube, Instagram..."></div>
+        <div class="form-group"><label>Formato</label><input type="text" id="ideia-formato" placeholder="Vídeo longo, Shorts, Reels..."></div>
+        <div class="form-group"><label>Tags</label><input type="text" id="ideia-tags" placeholder="separadas por vírgula"></div>
+        <div class="form-group"><label>Potencial</label><select id="ideia-potencial"><option value="alto">🔥 Alto</option><option value="medio">⚡ Médio</option><option value="baixo">🌱 Baixo</option></select></div>
+        <div class="form-group"><label>Status</label><select id="ideia-status-select"><option value="nova">💡 Nova</option><option value="dev">🔄 Em desenvolvimento</option><option value="agend">📅 Agendada</option><option value="pub">✅ Publicada</option></select></div>
+        <div class="form-group"><label>Próximo passo</label><input type="text" id="ideia-prox" placeholder="O que fazer agora?"></div>
+        <div class="modal-footer"><button class="btn-modal" id="ideia-cancel">Cancelar</button><button class="btn-modal btn-primary" id="ideia-save">Salvar</button></div>
     </div>
 </div>
 
 <div id="toast-msg" class="toast">✅ Salvo</div>
 
 <script>
-    // ---------- ESTRUTURA DE DADOS ----------
+    // ---------- DADOS GLOBAIS ----------
     let data = {
         nichos: [
             { id: "n1", nome: "PetShop & Banho Tosa", canais: ["YouTube", "Shots", "Instagram"] },
             { id: "n2", nome: "Dono de PetShop", canais: ["YouTube", "TikTok", "Blog"] }
         ],
-        conteudos: {}
+        conteudos: {},      // [nichoId][anoMes][canal][dia]
+        ideias: {}          // [nichoId] = array de ideias
     };
 
     let currentNichoId = "n1";
     let currentAnoMes = "2025-04";
-    let currentView = "semanal";
+    let currentView = "semanal";   // semanal / mensal / ideias
     let activeTagFilter = "";
     let editCell = { canal: null, dia: null };
+    let editingIdeiaId = null;
 
     // ---------- FUNÇÕES AUXILIARES ----------
-    function getCurrentMonthYear() {
-        const [ano, mes] = currentAnoMes.split("-");
-        return { ano: parseInt(ano), mes: parseInt(mes) };
-    }
-    function setMonthYear(ano, mes) {
-        currentAnoMes = `${ano}-${mes.toString().padStart(2,'0')}`;
-        render();
-    }
     function formatMonthYear() {
         const [ano, mes] = currentAnoMes.split("-");
         const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -405,76 +450,71 @@
         render();
     }
 
-    function tagsStringToArray(str) {
-        return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    function ensureIdeias() {
+        if (!data.ideias[currentNichoId]) data.ideias[currentNichoId] = [];
+        return data.ideias[currentNichoId];
     }
 
-    function saveToLocal() {
-        localStorage.setItem("cronograma_avancado", JSON.stringify(data));
-    }
-
-    function loadFromLocal() {
-        const saved = localStorage.getItem("cronograma_avancado");
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                data = parsed;
-                if (!data.nichos || data.nichos.length === 0) initDefaultData();
-            } catch(e) { initDefaultData(); }
+    function saveIdeia(ideia) {
+        let ideias = ensureIdeias();
+        if (ideia.id) {
+            const index = ideias.findIndex(i => i.id === ideia.id);
+            if (index !== -1) ideias[index] = ideia;
         } else {
-            initDefaultData();
-        }
-    }
-
-    function initDefaultData() {
-        data = {
-            nichos: [
-                { id: "n1", nome: "PetShop & Banho Tosa", canais: ["YouTube", "Shots", "Instagram"] },
-                { id: "n2", nome: "Dono de PetShop", canais: ["YouTube", "TikTok", "Blog"] }
-            ],
-            conteudos: {}
-        };
-        const exemplo = {
-            "YouTube": {
-                2: { titulo: "Movimentos certos para banho", tags: ["tutorial"], status: "postado", desc: "Manuseio correto", link: "", duracao: "" },
-                5: { titulo: "Preparando o cãozinho", tags: ["dicas"], status: "gravar", desc: "", link: "", duracao: "" }
-            },
-            "Shots": {
-                3: { titulo: "Melhor curso de banho", tags: ["recomendação"], status: "postado", desc: "", link: "", duracao: "" }
-            },
-            "Instagram": {
-                4: { titulo: "Cuidado com lâminas", tags: ["segurança"], status: "postado", desc: "", link: "", duracao: "" }
-            }
-        };
-        if (!data.conteudos["n1"]) data.conteudos["n1"] = {};
-        data.conteudos["n1"]["2025-04"] = exemplo;
-        for (let n of data.nichos) {
-            for (let mes in data.conteudos[n.id]) {
-                for (let canal of n.canais) {
-                    if (!data.conteudos[n.id][mes][canal]) data.conteudos[n.id][mes][canal] = {};
-                    for (let d=1; d<=31; d++) {
-                        if (!data.conteudos[n.id][mes][canal][d]) data.conteudos[n.id][mes][canal][d] = { titulo: "", tags: [], status: "ideia", desc: "", link: "", duracao: "" };
-                    }
-                }
-            }
+            ideia.id = Date.now() + "_" + Math.random();
+            ideia.criadoEm = new Date().toISOString();
+            ideias.unshift(ideia);
         }
         saveToLocal();
+        render();
     }
 
-    // ---------- RENDER ----------
+    function deleteIdeia(id) {
+        let ideias = ensureIdeias();
+        ideias = ideias.filter(i => i.id !== id);
+        data.ideias[currentNichoId] = ideias;
+        saveToLocal();
+        render();
+        showToast("Ideia removida");
+    }
+
+    function promoverIdeiaParaCronograma(ideia) {
+        // abre um prompt para escolher data e canal
+        const dia = prompt("Digite o dia do mês (1-31):", "1");
+        if (!dia || dia < 1 || dia > 31) return;
+        const canal = prompt("Canal (ex: YouTube, Shots, Instagram):", ideia.canal || "YouTube");
+        if (!canal) return;
+        const cell = getCell(canal, parseInt(dia));
+        cell.titulo = ideia.titulo;
+        cell.desc = ideia.desc || "";
+        cell.tags = ideia.tags || [];
+        cell.status = "ideia";
+        saveToLocal();
+        render();
+        showToast(`Ideia promovida para ${canal} dia ${dia}`);
+    }
+
+    // ---------- RENDER PRINCIPAL ----------
     function render() {
         renderNichoSelector();
         document.getElementById("month-year").innerText = formatMonthYear();
-        if (currentView === "semanal") renderSemanal();
-        else renderMensal();
-        updateFilterUI();
+        const monthPicker = document.getElementById("month-picker-container");
+        if (currentView === "ideias") {
+            monthPicker.style.display = "none";
+            document.getElementById("filter-tags-container").style.display = "none";
+        } else {
+            monthPicker.style.display = "flex";
+            document.getElementById("filter-tags-container").style.display = "flex";
+            if (currentView === "semanal") renderSemanal();
+            else if (currentView === "mensal") renderMensal();
+            updateFilterUI();
+        }
+        if (currentView === "ideias") renderIdeias();
     }
 
     function renderNichoSelector() {
         const container = document.getElementById("nicho-selector");
-        container.innerHTML = data.nichos.map(n => 
-            `<button class="nicho-btn ${currentNichoId === n.id ? 'active' : ''}" data-id="${n.id}">${escapeHtml(n.nome)}</button>`
-        ).join("");
+        container.innerHTML = data.nichos.map(n => `<button class="nicho-btn ${currentNichoId === n.id ? 'active' : ''}" data-id="${n.id}">${escapeHtml(n.nome)}</button>`).join("");
         document.querySelectorAll(".nicho-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 currentNichoId = btn.getAttribute("data-id");
@@ -483,12 +523,13 @@
         });
     }
 
+    // --- GRADE (semanal/mensal) igual antes, mas com atalho para promover ideia? --
     function cellHtml(canal, dia, cell) {
         const titulo = cell.titulo || "";
         const tags = cell.tags || [];
         const status = cell.status || "ideia";
         const filtroMatch = activeTagFilter === "" || tags.includes(activeTagFilter);
-        if (!filtroMatch) return `<td class="conteudo-cell" style="opacity:0.3; background:#111;" data-canal="${canal}" data-dia="${dia}"> </td>`;
+        if (!filtroMatch) return `<td class="conteudo-cell" data-canal="${canal}" data-dia="${dia}" style="opacity:0.3;"></td>`;
         return `<td class="conteudo-cell" data-canal="${canal}" data-dia="${dia}">
             <div class="cell-title">${escapeHtml(titulo) || "—"}</div>
             <div class="cell-tags">${tags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
@@ -501,7 +542,7 @@
         const canais = nicho.canais;
         const weekDays = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
         const diasDoMes = [1,2,3,4,5,6,7];
-        const headers = weekDays.map((d, idx) => `<th>${d}<br><span style="font-size:10px;color:#aaa;">${diasDoMes[idx]}</span></th>`).join('');
+        const headers = weekDays.map((d, idx) => `<th>${d}<br><span style="font-size:10px;">${diasDoMes[idx]}</span></th>`).join('');
         let html = `<table class="week-table"><thead><tr><th>Canal</th>${headers}</tr></thead><tbody>`;
         for (let canal of canais) {
             html += `<tr><td class="canal-col">${escapeHtml(canal)}</td>`;
@@ -560,6 +601,7 @@
 
     function closeModal() {
         document.getElementById("content-modal").style.display = "none";
+        document.getElementById("ideia-modal").style.display = "none";
     }
 
     function saveModal() {
@@ -567,16 +609,98 @@
         const desc = document.getElementById("modal-desc").value;
         const link = document.getElementById("modal-link").value;
         const tagsStr = document.getElementById("modal-tags").value;
-        const tags = tagsStringToArray(tagsStr);
+        const tags = tagsStr.split(',').map(s=>s.trim()).filter(s=>s);
         const status = document.getElementById("modal-status").value;
         const duracao = document.getElementById("modal-duracao").value;
-        setCell(editCell.canal, editCell.dia, {
-            titulo, desc, link, tags, status, duracao
-        });
+        setCell(editCell.canal, editCell.dia, { titulo, desc, link, tags, status, duracao });
         closeModal();
         showToast("Conteúdo salvo!");
     }
 
+    // --- IDEIAS ---
+    function renderIdeias() {
+        const ideias = ensureIdeias();
+        const html = `
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+                <button id="add-ideia-btn" class="add-ideia-btn">+ Nova Ideia</button>
+            </div>
+            <div class="ideias-grid">
+                ${ideias.map(ideia => `
+                    <div class="ideia-card ${ideia.potencial || 'media'}">
+                        <div class="ideia-titulo">${escapeHtml(ideia.titulo)}</div>
+                        <div class="ideia-desc">${escapeHtml(ideia.desc || '')}</div>
+                        <div class="ideia-meta">
+                            <span>📺 ${escapeHtml(ideia.canal || '—')}</span>
+                            <span>🎬 ${escapeHtml(ideia.formato || '—')}</span>
+                            ${(ideia.tags || []).map(t => `<span>#${escapeHtml(t)}</span>`).join('')}
+                        </div>
+                        <div class="ideia-status ${ideia.status || 'nova'}">${getStatusIdeiaLabel(ideia.status)}</div>
+                        <div class="ideia-actions">
+                            <button class="edit-ideia" data-id="${ideia.id}">✏️ Editar</button>
+                            <button class="delete-ideia" data-id="${ideia.id}">🗑 Excluir</button>
+                            <button class="promover-ideia" data-id="${ideia.id}">📅 Promover</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        document.getElementById("table-container").innerHTML = html;
+        // eventos
+        document.getElementById("add-ideia-btn")?.addEventListener("click", () => openIdeiaModal());
+        document.querySelectorAll(".edit-ideia").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = btn.getAttribute("data-id");
+                const ideia = ensureIdeias().find(i => i.id === id);
+                if (ideia) openIdeiaModal(ideia);
+            });
+        });
+        document.querySelectorAll(".delete-ideia").forEach(btn => {
+            btn.addEventListener("click", () => {
+                if (confirm("Excluir ideia?")) deleteIdeia(btn.getAttribute("data-id"));
+            });
+        });
+        document.querySelectorAll(".promover-ideia").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = btn.getAttribute("data-id");
+                const ideia = ensureIdeias().find(i => i.id === id);
+                if (ideia) promoverIdeiaParaCronograma(ideia);
+            });
+        });
+    }
+
+    function openIdeiaModal(ideia = null) {
+        editingIdeiaId = ideia ? ideia.id : null;
+        document.getElementById("ideia-titulo").value = ideia ? ideia.titulo : "";
+        document.getElementById("ideia-desc").value = ideia ? ideia.desc || "" : "";
+        document.getElementById("ideia-canal").value = ideia ? ideia.canal || "" : "";
+        document.getElementById("ideia-formato").value = ideia ? ideia.formato || "" : "";
+        document.getElementById("ideia-tags").value = ideia ? (ideia.tags || []).join(", ") : "";
+        document.getElementById("ideia-potencial").value = ideia ? ideia.potencial || "medio" : "medio";
+        document.getElementById("ideia-status-select").value = ideia ? ideia.status || "nova" : "nova";
+        document.getElementById("ideia-prox").value = ideia ? ideia.proximoPasso || "" : "";
+        document.getElementById("ideia-modal").style.display = "flex";
+    }
+
+    function saveIdeiaFromModal() {
+        const titulo = document.getElementById("ideia-titulo").value.trim();
+        if (!titulo) { showToast("Título obrigatório"); return; }
+        const ideia = {
+            id: editingIdeiaId || null,
+            titulo: titulo,
+            desc: document.getElementById("ideia-desc").value,
+            canal: document.getElementById("ideia-canal").value,
+            formato: document.getElementById("ideia-formato").value,
+            tags: document.getElementById("ideia-tags").value.split(',').map(s=>s.trim()).filter(s=>s),
+            potencial: document.getElementById("ideia-potencial").value,
+            status: document.getElementById("ideia-status-select").value,
+            proximoPasso: document.getElementById("ideia-prox").value
+        };
+        saveIdeia(ideia);
+        closeModal();
+        showToast("Ideia salva!");
+    }
+
+    // --- FILTRO DE TAGS (para grade) ---
     function updateFilterUI() {
         const container = document.getElementById("active-tags-filter");
         const allTags = new Set();
@@ -600,7 +724,42 @@
         });
     }
 
-    // ---------- EXPORT / IMPORT / NUVEM ----------
+    // --- SALVAMENTO LOCAL / NUVEM ---
+    function saveToLocal() {
+        localStorage.setItem("cronograma_avancado", JSON.stringify(data));
+    }
+    function loadFromLocal() {
+        const saved = localStorage.getItem("cronograma_avancado");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                data = parsed;
+                if (!data.ideias) data.ideias = {};
+                if (!data.nichos || data.nichos.length === 0) initDefaultData();
+            } catch(e) { initDefaultData(); }
+        } else {
+            initDefaultData();
+        }
+    }
+    function initDefaultData() {
+        data = {
+            nichos: [
+                { id: "n1", nome: "PetShop & Banho Tosa", canais: ["YouTube", "Shots", "Instagram"] },
+                { id: "n2", nome: "Dono de PetShop", canais: ["YouTube", "TikTok", "Blog"] }
+            ],
+            conteudos: {},
+            ideias: {
+                "n1": [
+                    { id: "i1", titulo: "Entrevista com tosador profissional", desc: "Dicas de segurança", canal: "YouTube", formato: "Vídeo longo", tags: ["entrevista","dicas"], potencial: "alto", status: "nova", proximoPasso: "Pesquisar convidado", criadoEm: new Date().toISOString() },
+                    { id: "i2", titulo: "Reels: antes e depois do pet", desc: "Mostrar transformação", canal: "Instagram", formato: "Reels", tags: ["engajamento"], potencial: "medio", status: "dev", proximoPasso: "Pedir autorização de clientes" }
+                ],
+                "n2": [
+                    { id: "i3", titulo: "Planilha de controle de estoque", desc: "Template para petshop", canal: "Blog", formato: "PDF", tags: ["ferramenta"], potencial: "alto", status: "nova", proximoPasso: "Criar no Google Sheets" }
+                ]
+            }
+        };
+        saveToLocal();
+    }
     function exportData() {
         const jsonStr = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonStr], {type: "application/json"});
@@ -618,6 +777,7 @@
             try {
                 const imported = JSON.parse(e.target.result);
                 data = imported;
+                if (!data.ideias) data.ideias = {};
                 saveToLocal();
                 render();
                 showToast("Importado com sucesso!");
@@ -633,7 +793,7 @@
         try {
             let url, method, headers={'Content-Type':'application/json','X-Master-Key':jsonbinConfig.apiKey,'X-Bin-Private':'false'};
             if(jsonbinConfig.binId){ url=`https://api.jsonbin.io/v3/b/${jsonbinConfig.binId}`; method='PUT'; }
-            else { url='https://api.jsonbin.io/v3/b'; method='POST'; headers['X-Bin-Name']='cronograma-multi'; }
+            else { url='https://api.jsonbin.io/v3/b'; method='POST'; headers['X-Bin-Name']='cronograma-ideias'; }
             const res = await fetch(url,{method,headers,body:JSON.stringify(data)});
             const result = await res.json();
             if(!jsonbinConfig.binId && result.metadata?.id){ jsonbinConfig.binId = result.metadata.id; localStorage.setItem("hub_cfg", JSON.stringify(jsonbinConfig)); }
@@ -647,6 +807,7 @@
             const res = await fetch(`https://api.jsonbin.io/v3/b/${jsonbinConfig.binId}/latest`,{headers:{'X-Master-Key':jsonbinConfig.apiKey}});
             const result = await res.json();
             data = result.record;
+            if (!data.ideias) data.ideias = {};
             saveToLocal();
             render();
             showToast("Carregado da nuvem!");
@@ -658,13 +819,15 @@
     }
 
     function addNicho() {
-        const nome = prompt("Nome do novo nicho (ex: PetShop Premium):");
+        const nome = prompt("Nome do novo nicho:");
         if(!nome) return;
-        const canaisStr = prompt("Canais (separados por vírgula, ex: YouTube, Instagram, TikTok):", "YouTube, Instagram");
+        const canaisStr = prompt("Canais (separados por vírgula):", "YouTube, Instagram");
         const canais = canaisStr.split(",").map(s=>s.trim()).filter(s=>s);
         const newId = "n"+Date.now();
         data.nichos.push({ id: newId, nome, canais });
         data.conteudos[newId] = {};
+        if (!data.ideias) data.ideias = {};
+        data.ideias[newId] = [];
         saveToLocal();
         currentNichoId = newId;
         render();
@@ -672,22 +835,19 @@
     function changeMonth(delta) {
         let [ano, mes] = currentAnoMes.split("-").map(Number);
         let novaData = new Date(ano, mes-1 + delta, 1);
-        setMonthYear(novaData.getFullYear(), novaData.getMonth()+1);
+        currentAnoMes = `${novaData.getFullYear()}-${(novaData.getMonth()+1).toString().padStart(2,'0')}`;
+        render();
     }
     function newEmptyMonth() {
-        if(confirm("Criar novo mês vazio? (os dados atuais serão mantidos, você poderá alternar entre meses)")) {
+        if(confirm("Criar novo mês vazio?")) {
             const [ano, mes] = currentAnoMes.split("-");
             const novoMes = `${ano}-${mes}`;
-            if(data.conteudos[currentNichoId] && data.conteudos[currentNichoId][novoMes]) {
-                if(!confirm("Mês já existe, deseja sobrescrever com grade vazia?")) return;
-            }
             const nicho = data.nichos.find(n=>n.id===currentNichoId);
             const gradeVazia = {};
             nicho.canais.forEach(canal => {
                 gradeVazia[canal] = {};
                 for(let d=1; d<=31; d++) gradeVazia[canal][d] = { titulo: "", tags: [], status: "ideia", desc: "", link: "", duracao: "" };
             });
-            if(!data.conteudos[currentNichoId]) data.conteudos[currentNichoId] = {};
             data.conteudos[currentNichoId][novoMes] = gradeVazia;
             saveToLocal();
             render();
@@ -703,8 +863,14 @@
     function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
     function getStatusClass(s) { if(s==='postado') return 'status-postado'; if(s==='gravar') return 'status-gravar'; return 'status-ideia'; }
     function getStatusLabel(s) { if(s==='postado') return '✅ Postado'; if(s==='gravar') return '🎬 A gravar'; return '💭 Ideia'; }
+    function getStatusIdeiaLabel(s) {
+        if(s==='nova') return '💡 Nova';
+        if(s==='dev') return '🔄 Em desenvolvimento';
+        if(s==='agend') return '📅 Agendada';
+        return '✅ Publicada';
+    }
 
-    // Eventos
+    // Eventos principais
     document.getElementById("prev-month").onclick = () => changeMonth(-1);
     document.getElementById("next-month").onclick = () => changeMonth(1);
     document.getElementById("new-month").onclick = newEmptyMonth;
@@ -724,7 +890,11 @@
     });
     document.getElementById("modal-cancel").onclick = closeModal;
     document.getElementById("modal-save").onclick = saveModal;
+    document.getElementById("ideia-cancel").onclick = closeModal;
+    document.getElementById("ideia-save").onclick = saveIdeiaFromModal;
 
+    // marcar a visualização ativa inicial
+    document.querySelector(".view-btn[data-view='semanal']").classList.add("active");
     loadFromLocal();
     render();
 </script>
