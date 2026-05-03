@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 Cronograma de Conteúdo · multi-nicho + nuvem</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #0F0F12;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #EDEDF0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 98%;
+            margin: 0 auto;
+        }
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #1A1A22;
+            padding: 12px 20px;
+            border-radius: 32px;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #FFD966, #FF9F4A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .nicho-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .nicho-btn, .add-nicho-btn {
+            background: #2A2A36;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nicho-btn.active {
+            background: #FF9F4A;
+            color: #0F0F12;
+        }
+        .month-picker {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #22222C;
+            padding: 5px 12px;
+            border-radius: 40px;
+        }
+        .month-picker button {
+            background: none;
+            border: none;
+            color: #FFD966;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 6px;
+        }
+        .view-tabs {
+            display: flex;
+            gap: 4px;
+            background: #22222C;
+            border-radius: 40px;
+            padding: 3px;
+        }
+        .view-btn {
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: transparent;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+        }
+        .view-btn.active {
+            background: #FF9F4A;
+            color: black;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-icon {
+            background: #2A2A36;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        .week-table, .month-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #14141C;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 6px;
+            vertical-align: top;
+        }
+        th {
+            background: #1E1E2A;
+            color: #FFD966;
+            font-weight: 600;
+            text-align: center;
+        }
+        .canal-col {
+            background: #1A1A24;
+            font-weight: 600;
+            text-align: center;
+            min-width: 100px;
+        }
+        .conteudo-cell {
+            cursor: pointer;
+            transition: background 0.1s;
+            min-height: 80px;
+        }
+        .conteudo-cell:hover {
+            background: #252530;
+        }
+        .cell-title {
+            font-weight: 500;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .cell-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 5px 0;
+        }
+        .tag {
+            background: #2C2C3A;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 9px;
+            color: #DDD;
+        }
+        .status-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .status-postado { background: #1F6E4A; color: #C0FFB0; }
+        .status-gravar { background: #B45F2B; color: #FFD7A0; }
+        .status-ideia { background: #4A4A6A; color: #CCC; }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: #1E1E2A;
+            border-radius: 24px;
+            padding: 24px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal h3 {
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #FFD966;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            background: #2A2A36;
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 12px;
+            color: white;
+            font-size: 13px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-modal {
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #FF9F4A;
+            color: black;
+        }
+        .filter-tags {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            background: #1A1A22;
+            padding: 10px 16px;
+            border-radius: 40px;
+        }
+        .filter-label {
+            font-size: 13px;
+            color: #FFD966;
+        }
+        .clear-filters {
+            background: #3A2A2A;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            color: white;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2E7D64;
+            padding: 10px 20px;
+            border-radius: 40px;
+            z-index: 2000;
+            display: none;
+            color: white;
+        }
+        .tag-chip {
+            background: #3A3A4A;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="top-bar">
+        <div class="logo">📅 CRONOGRAMA · multi-nicho</div>
+        <div class="nicho-selector" id="nicho-selector"></div>
+        <button class="add-nicho-btn" id="add-nicho-btn">+ Novo Nicho</button>
+        <div class="action-buttons">
+            <button class="btn-icon" id="export-json">📁 Exportar</button>
+            <button class="btn-icon" id="import-json">📂 Importar</button>
+            <button class="btn-icon" id="save-cloud">☁️ Salvar nuvem</button>
+            <button class="btn-icon" id="load-cloud">⬇️ Carregar nuvem</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div class="month-picker">
+            <button id="prev-month">◀</button>
+            <span id="month-year" style="min-width: 100px; text-align: center;">Abril 2025</span>
+            <button id="next-month">▶</button>
+            <button id="new-month" class="btn-icon" style="background:#2A4F6E;">📅 Novo mês</button>
+        </div>
+        <div class="view-tabs">
+            <button class="view-btn active" data-view="semanal">📆 Semanal</button>
+            <button class="view-btn" data-view="mensal">📅 Mensal</button>
+        </div>
+    </div>
+
+    <div class="filter-tags" id="filter-tags-container">
+        <span class="filter-label">🏷️ Filtrar por tag:</span>
+        <div id="active-tags-filter" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+        <button class="clear-filters" id="clear-filters">Limpar</button>
+    </div>
+
+    <div class="table-wrapper" id="table-container"></div>
+</div>
+
+<div id="content-modal" class="modal-overlay">
+    <div class="modal">
+        <h3>✏️ Editar conteúdo</h3>
+        <div class="form-group">
+            <label>Título</label>
+            <input type="text" id="modal-titulo" placeholder="Título do vídeo/post">
+        </div>
+        <div class="form-group">
+            <label>Descrição / Roteiro</label>
+            <textarea id="modal-desc" rows="3" placeholder="O que será abordado..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Link (YouTube, Drive, etc)</label>
+            <input type="url" id="modal-link" placeholder="https://...">
+        </div>
+        <div class="form-group">
+            <label>Tags (separadas por vírgula)</label>
+            <input type="text" id="modal-tags" placeholder="ex: tutorial, dicas, produto">
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <select id="modal-status">
+                <option value="postado">✅ Postado</option>
+                <option value="gravar">🎬 A gravar</option>
+                <option value="ideia">💭 Ideia</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Duração (opcional)</label>
+            <input type="text" id="modal-duracao" placeholder="10min">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal" id="modal-cancel">Cancelar</button>
+            <button class="btn-modal btn-primary" id="modal-save">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-msg" class="toast">✅ Salvo</div>
+
+<script>
+    // ---------- ESTRUTURA DE DADOS ----------
+    let data = {
+        nichos: [
+            { id: "n1", nome: "PetShop & Banho Tosa", canais: ["YouTube", "Shots", "Instagram"] },
+            { id: "n2", nome: "Dono de PetShop", canais: ["YouTube", "TikTok", "Blog"] }
+        ],
+        conteudos: {}
+    };
+
+    let currentNichoId = "n1";
+    let currentAnoMes = "2025-04";
+    let currentView = "semanal";
+    let activeTagFilter = "";
+    let editCell = { canal: null, dia: null };
+
+    // ---------- FUNÇÕES AUXILIARES ----------
+    function getCurrentMonthYear() {
+        const [ano, mes] = currentAnoMes.split("-");
+        return { ano: parseInt(ano), mes: parseInt(mes) };
+    }
+    function setMonthYear(ano, mes) {
+        currentAnoMes = `${ano}-${mes.toString().padStart(2,'0')}`;
+        render();
+    }
+    function formatMonthYear() {
+        const [ano, mes] = currentAnoMes.split("-");
+        const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+        return `${meses[parseInt(mes)-1]} ${ano}`;
+    }
+
+    function ensureMonth(nichoId, anoMes) {
+        if (!data.conteudos[nichoId]) data.conteudos[nichoId] = {};
+        if (!data.conteudos[nichoId][anoMes]) {
+            const nicho = data.nichos.find(n => n.id === nichoId);
+            const canais = nicho ? nicho.canais : [];
+            const grade = {};
+            canais.forEach(canal => {
+                grade[canal] = {};
+                for (let d = 1; d <= 31; d++) {
+                    grade[canal][d] = { titulo: "", desc: "", link: "", tags: [], status: "ideia", duracao: "" };
+                }
+            });
+            data.conteudos[nichoId][anoMes] = grade;
+        }
+        return data.conteudos[nichoId][anoMes];
+    }
+
+    function getCell(canal, dia) {
+        const grade = ensureMonth(currentNichoId, currentAnoMes);
+        if (!grade[canal]) grade[canal] = {};
+        if (!grade[canal][dia]) grade[canal][dia] = { titulo: "", desc: "", link: "", tags: [], status: "ideia", duracao: "" };
+        return grade[canal][dia];
+    }
+
+    function setCell(canal, dia, newData) {
+        const grade = ensureMonth(currentNichoId, currentAnoMes);
+        if (!grade[canal]) grade[canal] = {};
+        grade[canal][dia] = { ...grade[canal][dia], ...newData };
+        saveToLocal();
+        render();
+    }
+
+    function tagsStringToArray(str) {
+        return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    }
+
+    function saveToLocal() {
+        localStorage.setItem("cronograma_avancado", JSON.stringify(data));
+    }
+
+    function loadFromLocal() {
+        const saved = localStorage.getItem("cronograma_avancado");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                data = parsed;
+                if (!data.nichos || data.nichos.length === 0) initDefaultData();
+            } catch(e) { initDefaultData(); }
+        } else {
+            initDefaultData();
+        }
+    }
+
+    function initDefaultData() {
+        data = {
+            nichos: [
+                { id: "n1", nome: "PetShop & Banho Tosa", canais: ["YouTube", "Shots", "Instagram"] },
+                { id: "n2", nome: "Dono de PetShop", canais: ["YouTube", "TikTok", "Blog"] }
+            ],
+            conteudos: {}
+        };
+        const exemplo = {
+            "YouTube": {
+                2: { titulo: "Movimentos certos para banho", tags: ["tutorial"], status: "postado", desc: "Manuseio correto", link: "", duracao: "" },
+                5: { titulo: "Preparando o cãozinho", tags: ["dicas"], status: "gravar", desc: "", link: "", duracao: "" }
+            },
+            "Shots": {
+                3: { titulo: "Melhor curso de banho", tags: ["recomendação"], status: "postado", desc: "", link: "", duracao: "" }
+            },
+            "Instagram": {
+                4: { titulo: "Cuidado com lâminas", tags: ["segurança"], status: "postado", desc: "", link: "", duracao: "" }
+            }
+        };
+        if (!data.conteudos["n1"]) data.conteudos["n1"] = {};
+        data.conteudos["n1"]["2025-04"] = exemplo;
+        for (let n of data.nichos) {
+            for (let mes in data.conteudos[n.id]) {
+                for (let canal of n.canais) {
+                    if (!data.conteudos[n.id][mes][canal]) data.conteudos[n.id][mes][canal] = {};
+                    for (let d=1; d<=31; d++) {
+                        if (!data.conteudos[n.id][mes][canal][d]) data.conteudos[n.id][mes][canal][d] = { titulo: "", tags: [], status: "ideia", desc: "", link: "", duracao: "" };
+                    }
+                }
+            }
+        }
+        saveToLocal();
+    }
+
+    // ---------- RENDER ----------
+    function render() {
+        renderNichoSelector();
+        document.getElementById("month-year").innerText = formatMonthYear();
+        if (currentView === "semanal") renderSemanal();
+        else renderMensal();
+        updateFilterUI();
+    }
+
+    function renderNichoSelector() {
+        const container = document.getElementById("nicho-selector");
+        container.innerHTML = data.nichos.map(n => 
+            `<button class="nicho-btn ${currentNichoId === n.id ? 'active' : ''}" data-id="${n.id}">${escapeHtml(n.nome)}</button>`
+        ).join("");
+        document.querySelectorAll(".nicho-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                currentNichoId = btn.getAttribute("data-id");
+                render();
+            });
+        });
+    }
+
+    function cellHtml(canal, dia, cell) {
+        const titulo = cell.titulo || "";
+        const tags = cell.tags || [];
+        const status = cell.status || "ideia";
+        const filtroMatch = activeTagFilter === "" || tags.includes(activeTagFilter);
+        if (!filtroMatch) return `<td class="conteudo-cell" style="opacity:0.3; background:#111;" data-canal="${canal}" data-dia="${dia}"> </td>`;
+        return `<td class="conteudo-cell" data-canal="${canal}" data-dia="${dia}">
+            <div class="cell-title">${escapeHtml(titulo) || "—"}</div>
+            <div class="cell-tags">${tags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
+            <div class="status-badge ${getStatusClass(status)}">${getStatusLabel(status)}</div>
+         </td>`;
+    }
+
+    function renderSemanal() {
+        const nicho = data.nichos.find(n => n.id === currentNichoId);
+        const canais = nicho.canais;
+        const weekDays = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+        const diasDoMes = [1,2,3,4,5,6,7];
+        const headers = weekDays.map((d, idx) => `<th>${d}<br><span style="font-size:10px;color:#aaa;">${diasDoMes[idx]}</span></th>`).join('');
+        let html = `<table class="week-table"><thead><tr><th>Canal</th>${headers}</tr></thead><tbody>`;
+        for (let canal of canais) {
+            html += `<tr><td class="canal-col">${escapeHtml(canal)}</td>`;
+            for (let i=0; i<7; i++) {
+                const diaNum = diasDoMes[i];
+                const cell = getCell(canal, diaNum);
+                html += cellHtml(canal, diaNum, cell);
+            }
+            html += `</tr>`;
+        }
+        html += `</tbody></table>`;
+        document.getElementById("table-container").innerHTML = html;
+        attachCellEvents();
+    }
+
+    function renderMensal() {
+        const nicho = data.nichos.find(n => n.id === currentNichoId);
+        const canais = nicho.canais;
+        const days = Array.from({length: 31}, (_, i) => i+1);
+        let html = `<table class="month-table"><thead><tr><th>Canal</th>${days.map(d => `<th style="min-width: 45px;">${d}</th>`).join('')}</tr></thead><tbody>`;
+        for (let canal of canais) {
+            html += `<tr><td class="canal-col">${escapeHtml(canal)}</td>`;
+            for (let dia of days) {
+                const cell = getCell(canal, dia);
+                html += cellHtml(canal, dia, cell);
+            }
+            html += `</tr>`;
+        }
+        html += `</tbody></table>`;
+        document.getElementById("table-container").innerHTML = html;
+        attachCellEvents();
+    }
+
+    function attachCellEvents() {
+        document.querySelectorAll(".conteudo-cell").forEach(cell => {
+            cell.addEventListener("click", (e) => {
+                const canal = cell.getAttribute("data-canal");
+                const dia = cell.getAttribute("data-dia");
+                if (!canal || !dia) return;
+                editCell = { canal, dia: parseInt(dia) };
+                openModal(editCell.canal, editCell.dia);
+            });
+        });
+    }
+
+    function openModal(canal, dia) {
+        const cell = getCell(canal, dia);
+        document.getElementById("modal-titulo").value = cell.titulo || "";
+        document.getElementById("modal-desc").value = cell.desc || "";
+        document.getElementById("modal-link").value = cell.link || "";
+        document.getElementById("modal-tags").value = (cell.tags || []).join(", ");
+        document.getElementById("modal-status").value = cell.status || "ideia";
+        document.getElementById("modal-duracao").value = cell.duracao || "";
+        document.getElementById("content-modal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("content-modal").style.display = "none";
+    }
+
+    function saveModal() {
+        const titulo = document.getElementById("modal-titulo").value;
+        const desc = document.getElementById("modal-desc").value;
+        const link = document.getElementById("modal-link").value;
+        const tagsStr = document.getElementById("modal-tags").value;
+        const tags = tagsStringToArray(tagsStr);
+        const status = document.getElementById("modal-status").value;
+        const duracao = document.getElementById("modal-duracao").value;
+        setCell(editCell.canal, editCell.dia, {
+            titulo, desc, link, tags, status, duracao
+        });
+        closeModal();
+        showToast("Conteúdo salvo!");
+    }
+
+    function updateFilterUI() {
+        const container = document.getElementById("active-tags-filter");
+        const allTags = new Set();
+        const grade = ensureMonth(currentNichoId, currentAnoMes);
+        for (let canal in grade) {
+            for (let dia in grade[canal]) {
+                (grade[canal][dia].tags || []).forEach(t => allTags.add(t));
+            }
+        }
+        const tagsArray = Array.from(allTags);
+        container.innerHTML = tagsArray.map(tag => `
+            <button class="tag-chip" data-tag="${tag}" style="background:${activeTagFilter===tag?'#FF9F4A':'#3A3A4A'}">#${escapeHtml(tag)}</button>
+        `).join("");
+        document.querySelectorAll("[data-tag]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const tag = btn.getAttribute("data-tag");
+                activeTagFilter = (activeTagFilter === tag) ? "" : tag;
+                updateFilterUI();
+                render();
+            });
+        });
+    }
+
+    // ---------- EXPORT / IMPORT / NUVEM ----------
+    function exportData() {
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `cronograma_${currentNichoId}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("Exportado!");
+    }
+    function importData(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                data = imported;
+                saveToLocal();
+                render();
+                showToast("Importado com sucesso!");
+            } catch(err) { showToast("Arquivo inválido"); }
+        };
+        reader.readAsText(file);
+    }
+    let jsonbinConfig = { apiKey: "", binId: "" };
+    try { const cfg = JSON.parse(localStorage.getItem("hub_cfg")||"{}"); jsonbinConfig.apiKey = cfg.apiKey||""; jsonbinConfig.binId = cfg.binId||""; } catch(e) {}
+    async function saveToCloud() {
+        if (!jsonbinConfig.apiKey) { promptApiKey(); return; }
+        showToast("Salvando na nuvem...");
+        try {
+            let url, method, headers={'Content-Type':'application/json','X-Master-Key':jsonbinConfig.apiKey,'X-Bin-Private':'false'};
+            if(jsonbinConfig.binId){ url=`https://api.jsonbin.io/v3/b/${jsonbinConfig.binId}`; method='PUT'; }
+            else { url='https://api.jsonbin.io/v3/b'; method='POST'; headers['X-Bin-Name']='cronograma-multi'; }
+            const res = await fetch(url,{method,headers,body:JSON.stringify(data)});
+            const result = await res.json();
+            if(!jsonbinConfig.binId && result.metadata?.id){ jsonbinConfig.binId = result.metadata.id; localStorage.setItem("hub_cfg", JSON.stringify(jsonbinConfig)); }
+            showToast("✅ Nuvem salva!");
+        } catch(e) { showToast("Erro nuvem"); }
+    }
+    async function loadFromCloud() {
+        if (!jsonbinConfig.apiKey || !jsonbinConfig.binId) { promptApiKey(); return; }
+        showToast("Carregando...");
+        try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${jsonbinConfig.binId}/latest`,{headers:{'X-Master-Key':jsonbinConfig.apiKey}});
+            const result = await res.json();
+            data = result.record;
+            saveToLocal();
+            render();
+            showToast("Carregado da nuvem!");
+        } catch(e) { showToast("Falha ao carregar"); }
+    }
+    function promptApiKey() {
+        let key = prompt("Insira sua API Key do JSONBin.io:");
+        if(key) { jsonbinConfig.apiKey = key; localStorage.setItem("hub_cfg", JSON.stringify(jsonbinConfig)); showToast("API Key salva"); }
+    }
+
+    function addNicho() {
+        const nome = prompt("Nome do novo nicho (ex: PetShop Premium):");
+        if(!nome) return;
+        const canaisStr = prompt("Canais (separados por vírgula, ex: YouTube, Instagram, TikTok):", "YouTube, Instagram");
+        const canais = canaisStr.split(",").map(s=>s.trim()).filter(s=>s);
+        const newId = "n"+Date.now();
+        data.nichos.push({ id: newId, nome, canais });
+        data.conteudos[newId] = {};
+        saveToLocal();
+        currentNichoId = newId;
+        render();
+    }
+    function changeMonth(delta) {
+        let [ano, mes] = currentAnoMes.split("-").map(Number);
+        let novaData = new Date(ano, mes-1 + delta, 1);
+        setMonthYear(novaData.getFullYear(), novaData.getMonth()+1);
+    }
+    function newEmptyMonth() {
+        if(confirm("Criar novo mês vazio? (os dados atuais serão mantidos, você poderá alternar entre meses)")) {
+            const [ano, mes] = currentAnoMes.split("-");
+            const novoMes = `${ano}-${mes}`;
+            if(data.conteudos[currentNichoId] && data.conteudos[currentNichoId][novoMes]) {
+                if(!confirm("Mês já existe, deseja sobrescrever com grade vazia?")) return;
+            }
+            const nicho = data.nichos.find(n=>n.id===currentNichoId);
+            const gradeVazia = {};
+            nicho.canais.forEach(canal => {
+                gradeVazia[canal] = {};
+                for(let d=1; d<=31; d++) gradeVazia[canal][d] = { titulo: "", tags: [], status: "ideia", desc: "", link: "", duracao: "" };
+            });
+            if(!data.conteudos[currentNichoId]) data.conteudos[currentNichoId] = {};
+            data.conteudos[currentNichoId][novoMes] = gradeVazia;
+            saveToLocal();
+            render();
+        }
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById("toast-msg");
+        toast.innerText = msg;
+        toast.style.display = "block";
+        setTimeout(() => toast.style.display = "none", 2000);
+    }
+    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    function getStatusClass(s) { if(s==='postado') return 'status-postado'; if(s==='gravar') return 'status-gravar'; return 'status-ideia'; }
+    function getStatusLabel(s) { if(s==='postado') return '✅ Postado'; if(s==='gravar') return '🎬 A gravar'; return '💭 Ideia'; }
+
+    // Eventos
+    document.getElementById("prev-month").onclick = () => changeMonth(-1);
+    document.getElementById("next-month").onclick = () => changeMonth(1);
+    document.getElementById("new-month").onclick = newEmptyMonth;
+    document.getElementById("add-nicho-btn").onclick = addNicho;
+    document.getElementById("export-json").onclick = exportData;
+    document.getElementById("import-json").onclick = () => { let input = document.createElement("input"); input.type="file"; input.accept=".json"; input.onchange = e => importData(e.target.files[0]); input.click(); };
+    document.getElementById("save-cloud").onclick = saveToCloud;
+    document.getElementById("load-cloud").onclick = loadFromCloud;
+    document.getElementById("clear-filters").onclick = () => { activeTagFilter = ""; updateFilterUI(); render(); };
+    document.querySelectorAll(".view-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            currentView = btn.getAttribute("data-view");
+            document.querySelectorAll(".view-btn").forEach(b=>b.classList.remove("active"));
+            btn.classList.add("active");
+            render();
+        });
+    });
+    document.getElementById("modal-cancel").onclick = closeModal;
+    document.getElementById("modal-save").onclick = saveModal;
+
+    loadFromLocal();
+    render();
+</script>
+</body>
+</html>
