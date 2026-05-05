@@ -2,86 +2,96 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 Cronograma de Conteúdo + 💡 Banco de Ideias</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>📺 Conteúdo · Kanban (Trello-like)</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
+
         body {
-            background: #0F0F12;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            color: #EDEDF0;
-            padding: 20px;
+            background: #0E0E12;
+            font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
+            color: #F0F0F0;
+            padding: 16px;
         }
-        .container {
-            max-width: 98%;
+
+        .app {
+            max-width: 1400px;
             margin: 0 auto;
         }
+
+        /* Header */
         .top-bar {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            background: #1A1A22;
-            padding: 12px 20px;
+            justify-content: space-between;
+            gap: 12px;
+            background: #1A1A24;
+            padding: 10px 20px;
             border-radius: 32px;
+            margin-bottom: 24px;
         }
+
         .logo {
             font-weight: 800;
             font-size: 1.4rem;
-            background: linear-gradient(135deg, #FFD966, #FF9F4A);
+            background: linear-gradient(135deg, #FFB347, #FF8C42);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
-        .nicho-selector {
+
+        .canal-selector {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
-        .nicho-btn, .add-nicho-btn {
-            background: #2A2A36;
+
+        .canal-btn {
+            background: #2C2C38;
             border: none;
-            padding: 6px 16px;
+            padding: 6px 18px;
             border-radius: 40px;
-            color: white;
+            color: #DDD;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: 500;
         }
-        .nicho-btn.active {
-            background: #FF9F4A;
-            color: #0F0F12;
+
+        .canal-btn.active {
+            background: #FF8C42;
+            color: #0E0E12;
         }
-        .view-tabs {
+
+        .month-picker {
+            background: #1A1A24;
+            padding: 4px 12px;
+            border-radius: 40px;
             display: flex;
-            gap: 4px;
-            background: #22222C;
-            border-radius: 40px;
-            padding: 3px;
+            gap: 12px;
+            align-items: center;
         }
-        .view-btn {
-            padding: 6px 16px;
-            border-radius: 30px;
-            background: transparent;
+
+        .month-picker button {
+            background: #2C2C38;
             border: none;
-            color: #ccc;
+            color: #FFB347;
+            font-size: 1.2rem;
             cursor: pointer;
+            width: 28px;
+            border-radius: 30px;
         }
-        .view-btn.active {
-            background: #FF9F4A;
-            color: black;
-        }
+
         .action-buttons {
             display: flex;
             gap: 8px;
         }
+
         .btn-icon {
-            background: #2A2A36;
+            background: #2C2C38;
             border: none;
             padding: 6px 12px;
             border-radius: 30px;
@@ -89,165 +99,200 @@
             cursor: pointer;
             font-size: 13px;
         }
-        .table-wrapper {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-        .week-table, .month-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #14141C;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-        th, td {
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 6px;
-            vertical-align: top;
-        }
-        th {
-            background: #1E1E2A;
-            color: #FFD966;
-            font-weight: 600;
-            text-align: center;
-        }
-        .canal-col {
-            background: #1A1A24;
-            font-weight: 600;
-            text-align: center;
-            min-width: 100px;
-        }
-        .conteudo-cell {
-            cursor: pointer;
-            transition: background 0.1s;
-            min-height: 80px;
-        }
-        .conteudo-cell:hover {
-            background: #252530;
-        }
-        .cell-title {
-            font-weight: 500;
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
-        .cell-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin: 5px 0;
-        }
-        .tag {
-            background: #2C2C3A;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 9px;
-            color: #DDD;
-        }
-        .status-badge {
-            display: inline-block;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-        .status-postado { background: #1F6E4A; color: #C0FFB0; }
-        .status-gravar { background: #B45F2B; color: #FFD7A0; }
-        .status-ideia { background: #4A4A6A; color: #CCC; }
 
-        /* Estilos para a aba Ideias */
-        .ideias-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-            margin-top: 16px;
-        }
-        .ideia-card {
-            background: #1A1A24;
-            border-radius: 20px;
-            padding: 16px;
-            border-left: 5px solid #FF9F4A;
-            transition: 0.1s;
-        }
-        .ideia-card.alta { border-left-color: #F07070; }
-        .ideia-card.media { border-left-color: #FFD966; }
-        .ideia-card.baixa { border-left-color: #44D4A0; }
-        .ideia-titulo {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-        .ideia-desc {
-            font-size: 12px;
-            color: #BBB;
-            margin-bottom: 10px;
-        }
-        .ideia-meta {
+        /* Filter tags row */
+        .filter-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            font-size: 11px;
-            margin-bottom: 8px;
+            align-items: center;
+            gap: 12px;
+            background: #1A1A24;
+            padding: 10px 16px;
+            border-radius: 40px;
+            margin-bottom: 24px;
         }
-        .ideia-meta span {
-            background: #2A2A36;
-            padding: 2px 8px;
-            border-radius: 20px;
+
+        .filter-label {
+            font-size: 13px;
+            color: #FFB347;
         }
-        .ideia-status {
-            display: inline-block;
-            font-size: 10px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: #3A3A4A;
-        }
-        .ideia-status.nova { background: #4A6E8A; }
-        .ideia-status.dev { background: #B45F2B; }
-        .ideia-status.agend { background: #2A7F6E; }
-        .ideia-status.pub { background: #1F6E4A; }
-        .ideia-actions {
-            margin-top: 12px;
+
+        .tag-filters {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
             gap: 8px;
         }
-        .ideia-actions button {
-            background: #2C2C3A;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 16px;
+
+        .tag-filter {
+            background: #2C2C38;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             cursor: pointer;
-            color: white;
-            font-size: 11px;
         }
+
+        .tag-filter.active {
+            background: #FF8C42;
+            color: #0E0E12;
+        }
+
+        .clear-filter {
+            background: #3A2A2A;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        /* Kanban columns */
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            align-items: stretch;
+        }
+
+        .column {
+            background: #1A1A24;
+            border-radius: 20px;
+            width: 340px;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            max-height: 75vh;
+        }
+
+        .column-header {
+            padding: 16px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #FF8C42;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .column-cards {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 200px;
+        }
+
+        .card {
+            background: #252530;
+            border-radius: 16px;
+            padding: 12px;
+            cursor: grab;
+            transition: 0.1s;
+            border-left: 4px solid #FF8C42;
+            position: relative;
+        }
+
+        .card.dragging {
+            opacity: 0.4;
+            cursor: grabbing;
+        }
+
+        .card.overdue {
+            border-left-color: #F07070;
+            background: #2A1A1A;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 11px;
+            color: #BBB;
+            margin-bottom: 8px;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 8px 0;
+        }
+
+        .tag {
+            background: #3A3A4A;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .card-actions button {
+            background: transparent;
+            border: none;
+            color: #FFB347;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .add-card-btn {
+            background: #2C2C38;
+            border: 1px dashed #FF8C42;
+            border-radius: 40px;
+            padding: 8px;
+            margin-top: 8px;
+            text-align: center;
+            cursor: pointer;
+            color: #FFB347;
+            font-size: 13px;
+        }
+
+        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
-            top:0; left:0; width:100%; height:100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0,0,0,0.8);
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
+
         .modal {
             background: #1E1E2A;
             border-radius: 24px;
             padding: 24px;
             width: 90%;
-            max-width: 550px;
-            max-height: 85vh;
-            overflow-y: auto;
+            max-width: 500px;
         }
-        .modal h3 {
-            margin-bottom: 16px;
-        }
+
         .form-group {
             margin-bottom: 14px;
         }
+
         .form-group label {
             display: block;
             font-size: 12px;
-            margin-bottom: 4px;
-            color: #FFD966;
+            margin-bottom: 5px;
+            color: #FFB347;
         }
+
         .form-group input, .form-group textarea, .form-group select {
             width: 100%;
             background: #2A2A36;
@@ -255,648 +300,584 @@
             padding: 8px 12px;
             border-radius: 12px;
             color: white;
-            font-size: 13px;
         }
+
+        .tag-suggestions {
+            background: #2A2A36;
+            border-radius: 12px;
+            margin-top: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 6px;
+        }
+
+        .sugg-tag {
+            background: #3A3A4A;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
         .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
             margin-top: 20px;
         }
-        .btn-modal {
-            padding: 8px 16px;
-            border-radius: 30px;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-primary {
-            background: #FF9F4A;
-            color: black;
-        }
-        .filter-tags {
-            margin: 15px 0;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-            background: #1A1A22;
-            padding: 10px 16px;
-            border-radius: 40px;
-        }
-        .filter-label {
-            font-size: 13px;
-            color: #FFD966;
-        }
-        .clear-filters {
-            background: #3A2A2A;
-            border: none;
-            padding: 4px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            color: white;
-        }
+
         .toast {
             position: fixed;
             bottom: 20px;
             right: 20px;
             background: #2E7D64;
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: 40px;
             z-index: 2000;
             display: none;
-            color: white;
         }
-        .tag-chip {
-            background: #3A3A4A;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            border: none;
-            cursor: pointer;
-            color: white;
-        }
-        .add-ideia-btn {
-            background: #FF9F4A;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
+
+        /* Responsive */
+        @media (max-width: 800px) {
+            .kanban-board {
+                flex-direction: column;
+                align-items: center;
+            }
+            .column {
+                width: 100%;
+                max-height: none;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="app">
     <div class="top-bar">
-        <div class="logo">📅 CRONOGRAMA + 💡 IDEIAS</div>
-        <div class="nicho-selector" id="nicho-selector"></div>
-        <button class="add-nicho-btn" id="add-nicho-btn">+ Novo Nicho</button>
+        <div class="logo">📺 Conteúdo · Kanban</div>
+        <div class="canal-selector" id="canal-selector"></div>
+        <div class="month-picker">
+            <button id="prev-month">◀</button>
+            <span id="month-year">Maio 2025</span>
+            <button id="next-month">▶</button>
+        </div>
         <div class="action-buttons">
             <button class="btn-icon" id="export-json">📁 Exportar</button>
             <button class="btn-icon" id="import-json">📂 Importar</button>
-            <button class="btn-icon" id="save-cloud">☁️ Salvar nuvem</button>
-            <button class="btn-icon" id="load-cloud">⬇️ Carregar nuvem</button>
-        </div>
-    </div>
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-        <div class="month-picker" id="month-picker-container" style="display: flex; gap: 8px; align-items: center;">
-            <button id="prev-month">◀</button>
-            <span id="month-year" style="min-width: 100px; text-align: center;">Abril 2025</span>
-            <button id="next-month">▶</button>
-            <button id="new-month" class="btn-icon" style="background:#2A4F6E;">📅 Novo mês</button>
-        </div>
-        <div class="view-tabs">
-            <button class="view-btn" data-view="semanal">📆 Semanal</button>
-            <button class="view-btn" data-view="mensal">📅 Mensal</button>
-            <button class="view-btn" data-view="ideias">💡 Ideias</button>
         </div>
     </div>
 
-    <div class="filter-tags" id="filter-tags-container" style="display: none;">
+    <div class="filter-row">
         <span class="filter-label">🏷️ Filtrar por tag:</span>
-        <div id="active-tags-filter" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
-        <button class="clear-filters" id="clear-filters">Limpar</button>
+        <div class="tag-filters" id="tag-filters"></div>
+        <button class="clear-filter" id="clear-filter">Limpar</button>
     </div>
 
-    <div id="table-container"></div>
+    <div id="kanban-board" class="kanban-board"></div>
 </div>
 
-<!-- MODAL DE CONTEÚDO (cronograma) -->
-<div id="content-modal" class="modal-overlay">
+<!-- Modal -->
+<div id="card-modal" class="modal-overlay">
     <div class="modal">
-        <h3>✏️ Editar conteúdo</h3>
-        <div class="form-group"><label>Título</label><input type="text" id="modal-titulo"></div>
-        <div class="form-group"><label>Descrição / Roteiro</label><textarea id="modal-desc" rows="3"></textarea></div>
-        <div class="form-group"><label>Link</label><input type="url" id="modal-link"></div>
-        <div class="form-group"><label>Tags</label><input type="text" id="modal-tags" placeholder="ex: tutorial, dicas"></div>
-        <div class="form-group"><label>Status</label><select id="modal-status"><option value="postado">✅ Postado</option><option value="gravar">🎬 A gravar</option><option value="ideia">💭 Ideia</option></select></div>
-        <div class="form-group"><label>Duração</label><input type="text" id="modal-duracao"></div>
-        <div class="modal-footer"><button class="btn-modal" id="modal-cancel">Cancelar</button><button class="btn-modal btn-primary" id="modal-save">Salvar</button></div>
+        <h3 id="modal-title">Novo conteúdo</h3>
+        <div class="form-group">
+            <label>Título</label>
+            <input type="text" id="card-titulo" placeholder="Título do vídeo/post">
+        </div>
+        <div class="form-group">
+            <label>Data (opcional)</label>
+            <input type="date" id="card-data">
+        </div>
+        <div class="form-group">
+            <label>Canal (para agendamento)</label>
+            <select id="card-canal">
+                <option value="">Geral (ideia)</option>
+                <option value="YouTube">YouTube</option>
+                <option value="Shots">Shots</option>
+                <option value="Instagram">Instagram</option>
+                <option value="TikTok">TikTok</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Tags (digite # e selecione)</label>
+            <input type="text" id="card-tags-input" placeholder="#exemplo, #dica">
+            <div id="tag-suggestions" class="tag-suggestions"></div>
+        </div>
+        <div class="form-group">
+            <label>Descrição / roteiro</label>
+            <textarea id="card-desc" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <select id="card-status">
+                <option value="ideia">💡 Ideia</option>
+                <option value="gravar">🎬 A gravar</option>
+                <option value="postado">✅ Postado</option>
+            </select>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-icon" id="modal-cancel">Cancelar</button>
+            <button class="btn-icon" id="modal-save" style="background:#FF8C42;">Salvar</button>
+        </div>
     </div>
 </div>
 
-<!-- MODAL DE IDEIA -->
-<div id="ideia-modal" class="modal-overlay">
-    <div class="modal">
-        <h3>💡 Nova Ideia</h3>
-        <div class="form-group"><label>Título</label><input type="text" id="ideia-titulo"></div>
-        <div class="form-group"><label>Descrição</label><textarea id="ideia-desc" rows="3"></textarea></div>
-        <div class="form-group"><label>Canal sugerido</label><input type="text" id="ideia-canal" placeholder="YouTube, Instagram..."></div>
-        <div class="form-group"><label>Formato</label><input type="text" id="ideia-formato" placeholder="Vídeo longo, Shorts, Reels..."></div>
-        <div class="form-group"><label>Tags</label><input type="text" id="ideia-tags" placeholder="separadas por vírgula"></div>
-        <div class="form-group"><label>Potencial</label><select id="ideia-potencial"><option value="alto">🔥 Alto</option><option value="medio">⚡ Médio</option><option value="baixo">🌱 Baixo</option></select></div>
-        <div class="form-group"><label>Status</label><select id="ideia-status-select"><option value="nova">💡 Nova</option><option value="dev">🔄 Em desenvolvimento</option><option value="agend">📅 Agendada</option><option value="pub">✅ Publicada</option></select></div>
-        <div class="form-group"><label>Próximo passo</label><input type="text" id="ideia-prox" placeholder="O que fazer agora?"></div>
-        <div class="modal-footer"><button class="btn-modal" id="ideia-cancel">Cancelar</button><button class="btn-modal btn-primary" id="ideia-save">Salvar</button></div>
-    </div>
-</div>
-
-<div id="toast-msg" class="toast">✅ Salvo</div>
+<div id="toast" class="toast"></div>
 
 <script>
-    // ---------- DADOS GLOBAIS ----------
+    // ---------- DADOS ----------
     let data = {
-        nichos: [
-            { id: "n1", nome: "PetShop & Banho Tosa", canais: ["YouTube", "Shots", "Instagram"] },
-            { id: "n2", nome: "Dono de PetShop", canais: ["YouTube", "TikTok", "Blog"] }
-        ],
-        conteudos: {},      // [nichoId][anoMes][canal][dia]
-        ideias: {}          // [nichoId] = array de ideias
+        cards: []  // cada card: { id, titulo, data, canal, tags[], desc, status }
     };
 
-    let currentNichoId = "n1";
-    let currentAnoMes = "2025-04";
-    let currentView = "semanal";   // semanal / mensal / ideias
+    let currentCanal = "YouTube";
+    let currentAnoMes = "2025-05";
     let activeTagFilter = "";
-    let editCell = { canal: null, dia: null };
-    let editingIdeiaId = null;
+    let editingCardId = null;
+    let dragSource = null;
 
-    // ---------- FUNÇÕES AUXILIARES ----------
-    function formatMonthYear() {
-        const [ano, mes] = currentAnoMes.split("-");
-        const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-        return `${meses[parseInt(mes)-1]} ${ano}`;
-    }
-
-    function ensureMonth(nichoId, anoMes) {
-        if (!data.conteudos[nichoId]) data.conteudos[nichoId] = {};
-        if (!data.conteudos[nichoId][anoMes]) {
-            const nicho = data.nichos.find(n => n.id === nichoId);
-            const canais = nicho ? nicho.canais : [];
-            const grade = {};
-            canais.forEach(canal => {
-                grade[canal] = {};
-                for (let d = 1; d <= 31; d++) {
-                    grade[canal][d] = { titulo: "", desc: "", link: "", tags: [], status: "ideia", duracao: "" };
-                }
-            });
-            data.conteudos[nichoId][anoMes] = grade;
-        }
-        return data.conteudos[nichoId][anoMes];
-    }
-
-    function getCell(canal, dia) {
-        const grade = ensureMonth(currentNichoId, currentAnoMes);
-        if (!grade[canal]) grade[canal] = {};
-        if (!grade[canal][dia]) grade[canal][dia] = { titulo: "", desc: "", link: "", tags: [], status: "ideia", duracao: "" };
-        return grade[canal][dia];
-    }
-
-    function setCell(canal, dia, newData) {
-        const grade = ensureMonth(currentNichoId, currentAnoMes);
-        if (!grade[canal]) grade[canal] = {};
-        grade[canal][dia] = { ...grade[canal][dia], ...newData };
-        saveToLocal();
-        render();
-    }
-
-    function ensureIdeias() {
-        if (!data.ideias[currentNichoId]) data.ideias[currentNichoId] = [];
-        return data.ideias[currentNichoId];
-    }
-
-    function saveIdeia(ideia) {
-        let ideias = ensureIdeias();
-        if (ideia.id) {
-            const index = ideias.findIndex(i => i.id === ideia.id);
-            if (index !== -1) ideias[index] = ideia;
-        } else {
-            ideia.id = Date.now() + "_" + Math.random();
-            ideia.criadoEm = new Date().toISOString();
-            ideias.unshift(ideia);
+    // Inicializar dados de exemplo
+    function initMockData() {
+        if (data.cards.length === 0) {
+            data.cards = [
+                { id: "1", titulo: "Como dar banho em cães agitados", data: "2025-05-05", canal: "YouTube", tags: ["tutorial", "banho"], desc: "Técnicas de contenção", status: "postado" },
+                { id: "2", titulo: "Os 3 melhores secadores", data: "2025-05-12", canal: "YouTube", tags: ["produtos", "review"], desc: "", status: "gravar" },
+                { id: "3", titulo: "Reels: cachorro feliz após o banho", data: "2025-05-05", canal: "Instagram", tags: ["engajamento"], desc: "", status: "postado" },
+                { id: "4", titulo: "Escolhendo um bom curso de banho", data: "2025-05-03", canal: "Shots", tags: ["dica"], desc: "", status: "postado" },
+                { id: "5", titulo: "Entrevista com veterinário", data: "", canal: "", tags: ["entrevista"], desc: "Falar sobre saúde preventiva", status: "ideia" },
+                { id: "6", titulo: "Preparando o cão antes de secar", data: "", canal: "YouTube", tags: ["dica"], desc: "", status: "ideia" },
+                { id: "7", titulo: "Erros comuns na tosa", data: "2025-04-28", canal: "YouTube", tags: ["tutorial", "alerta"], desc: "", status: "gravar" } // atrasado
+            ];
         }
         saveToLocal();
-        render();
     }
 
-    function deleteIdeia(id) {
-        let ideias = ensureIdeias();
-        ideias = ideias.filter(i => i.id !== id);
-        data.ideias[currentNichoId] = ideias;
-        saveToLocal();
-        render();
-        showToast("Ideia removida");
-    }
-
-    function promoverIdeiaParaCronograma(ideia) {
-        // abre um prompt para escolher data e canal
-        const dia = prompt("Digite o dia do mês (1-31):", "1");
-        if (!dia || dia < 1 || dia > 31) return;
-        const canal = prompt("Canal (ex: YouTube, Shots, Instagram):", ideia.canal || "YouTube");
-        if (!canal) return;
-        const cell = getCell(canal, parseInt(dia));
-        cell.titulo = ideia.titulo;
-        cell.desc = ideia.desc || "";
-        cell.tags = ideia.tags || [];
-        cell.status = "ideia";
-        saveToLocal();
-        render();
-        showToast(`Ideia promovida para ${canal} dia ${dia}`);
-    }
-
-    // ---------- RENDER PRINCIPAL ----------
-    function render() {
-        renderNichoSelector();
-        document.getElementById("month-year").innerText = formatMonthYear();
-        const monthPicker = document.getElementById("month-picker-container");
-        if (currentView === "ideias") {
-            monthPicker.style.display = "none";
-            document.getElementById("filter-tags-container").style.display = "none";
-        } else {
-            monthPicker.style.display = "flex";
-            document.getElementById("filter-tags-container").style.display = "flex";
-            if (currentView === "semanal") renderSemanal();
-            else if (currentView === "mensal") renderMensal();
-            updateFilterUI();
-        }
-        if (currentView === "ideias") renderIdeias();
-    }
-
-    function renderNichoSelector() {
-        const container = document.getElementById("nicho-selector");
-        container.innerHTML = data.nichos.map(n => `<button class="nicho-btn ${currentNichoId === n.id ? 'active' : ''}" data-id="${n.id}">${escapeHtml(n.nome)}</button>`).join("");
-        document.querySelectorAll(".nicho-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                currentNichoId = btn.getAttribute("data-id");
-                render();
-            });
-        });
-    }
-
-    // --- GRADE (semanal/mensal) igual antes, mas com atalho para promover ideia? --
-    function cellHtml(canal, dia, cell) {
-        const titulo = cell.titulo || "";
-        const tags = cell.tags || [];
-        const status = cell.status || "ideia";
-        const filtroMatch = activeTagFilter === "" || tags.includes(activeTagFilter);
-        if (!filtroMatch) return `<td class="conteudo-cell" data-canal="${canal}" data-dia="${dia}" style="opacity:0.3;"></td>`;
-        return `<td class="conteudo-cell" data-canal="${canal}" data-dia="${dia}">
-            <div class="cell-title">${escapeHtml(titulo) || "—"}</div>
-            <div class="cell-tags">${tags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
-            <div class="status-badge ${getStatusClass(status)}">${getStatusLabel(status)}</div>
-         </td>`;
-    }
-
-    function renderSemanal() {
-        const nicho = data.nichos.find(n => n.id === currentNichoId);
-        const canais = nicho.canais;
-        const weekDays = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
-        const diasDoMes = [1,2,3,4,5,6,7];
-        const headers = weekDays.map((d, idx) => `<th>${d}<br><span style="font-size:10px;">${diasDoMes[idx]}</span></th>`).join('');
-        let html = `<table class="week-table"><thead><tr><th>Canal</th>${headers}</tr></thead><tbody>`;
-        for (let canal of canais) {
-            html += `<tr><td class="canal-col">${escapeHtml(canal)}</td>`;
-            for (let i=0; i<7; i++) {
-                const diaNum = diasDoMes[i];
-                const cell = getCell(canal, diaNum);
-                html += cellHtml(canal, diaNum, cell);
-            }
-            html += `</tr>`;
-        }
-        html += `</tbody></table>`;
-        document.getElementById("table-container").innerHTML = html;
-        attachCellEvents();
-    }
-
-    function renderMensal() {
-        const nicho = data.nichos.find(n => n.id === currentNichoId);
-        const canais = nicho.canais;
-        const days = Array.from({length: 31}, (_, i) => i+1);
-        let html = `<table class="month-table"><thead><tr><th>Canal</th>${days.map(d => `<th style="min-width: 45px;">${d}</th>`).join('')}</tr></thead><tbody>`;
-        for (let canal of canais) {
-            html += `<tr><td class="canal-col">${escapeHtml(canal)}</td>`;
-            for (let dia of days) {
-                const cell = getCell(canal, dia);
-                html += cellHtml(canal, dia, cell);
-            }
-            html += `</tr>`;
-        }
-        html += `</tbody></table>`;
-        document.getElementById("table-container").innerHTML = html;
-        attachCellEvents();
-    }
-
-    function attachCellEvents() {
-        document.querySelectorAll(".conteudo-cell").forEach(cell => {
-            cell.addEventListener("click", (e) => {
-                const canal = cell.getAttribute("data-canal");
-                const dia = cell.getAttribute("data-dia");
-                if (!canal || !dia) return;
-                editCell = { canal, dia: parseInt(dia) };
-                openModal(editCell.canal, editCell.dia);
-            });
-        });
-    }
-
-    function openModal(canal, dia) {
-        const cell = getCell(canal, dia);
-        document.getElementById("modal-titulo").value = cell.titulo || "";
-        document.getElementById("modal-desc").value = cell.desc || "";
-        document.getElementById("modal-link").value = cell.link || "";
-        document.getElementById("modal-tags").value = (cell.tags || []).join(", ");
-        document.getElementById("modal-status").value = cell.status || "ideia";
-        document.getElementById("modal-duracao").value = cell.duracao || "";
-        document.getElementById("content-modal").style.display = "flex";
-    }
-
-    function closeModal() {
-        document.getElementById("content-modal").style.display = "none";
-        document.getElementById("ideia-modal").style.display = "none";
-    }
-
-    function saveModal() {
-        const titulo = document.getElementById("modal-titulo").value;
-        const desc = document.getElementById("modal-desc").value;
-        const link = document.getElementById("modal-link").value;
-        const tagsStr = document.getElementById("modal-tags").value;
-        const tags = tagsStr.split(',').map(s=>s.trim()).filter(s=>s);
-        const status = document.getElementById("modal-status").value;
-        const duracao = document.getElementById("modal-duracao").value;
-        setCell(editCell.canal, editCell.dia, { titulo, desc, link, tags, status, duracao });
-        closeModal();
-        showToast("Conteúdo salvo!");
-    }
-
-    // --- IDEIAS ---
-    function renderIdeias() {
-        const ideias = ensureIdeias();
-        const html = `
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-                <button id="add-ideia-btn" class="add-ideia-btn">+ Nova Ideia</button>
-            </div>
-            <div class="ideias-grid">
-                ${ideias.map(ideia => `
-                    <div class="ideia-card ${ideia.potencial || 'media'}">
-                        <div class="ideia-titulo">${escapeHtml(ideia.titulo)}</div>
-                        <div class="ideia-desc">${escapeHtml(ideia.desc || '')}</div>
-                        <div class="ideia-meta">
-                            <span>📺 ${escapeHtml(ideia.canal || '—')}</span>
-                            <span>🎬 ${escapeHtml(ideia.formato || '—')}</span>
-                            ${(ideia.tags || []).map(t => `<span>#${escapeHtml(t)}</span>`).join('')}
-                        </div>
-                        <div class="ideia-status ${ideia.status || 'nova'}">${getStatusIdeiaLabel(ideia.status)}</div>
-                        <div class="ideia-actions">
-                            <button class="edit-ideia" data-id="${ideia.id}">✏️ Editar</button>
-                            <button class="delete-ideia" data-id="${ideia.id}">🗑 Excluir</button>
-                            <button class="promover-ideia" data-id="${ideia.id}">📅 Promover</button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        document.getElementById("table-container").innerHTML = html;
-        // eventos
-        document.getElementById("add-ideia-btn")?.addEventListener("click", () => openIdeiaModal());
-        document.querySelectorAll(".edit-ideia").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const id = btn.getAttribute("data-id");
-                const ideia = ensureIdeias().find(i => i.id === id);
-                if (ideia) openIdeiaModal(ideia);
-            });
-        });
-        document.querySelectorAll(".delete-ideia").forEach(btn => {
-            btn.addEventListener("click", () => {
-                if (confirm("Excluir ideia?")) deleteIdeia(btn.getAttribute("data-id"));
-            });
-        });
-        document.querySelectorAll(".promover-ideia").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const id = btn.getAttribute("data-id");
-                const ideia = ensureIdeias().find(i => i.id === id);
-                if (ideia) promoverIdeiaParaCronograma(ideia);
-            });
-        });
-    }
-
-    function openIdeiaModal(ideia = null) {
-        editingIdeiaId = ideia ? ideia.id : null;
-        document.getElementById("ideia-titulo").value = ideia ? ideia.titulo : "";
-        document.getElementById("ideia-desc").value = ideia ? ideia.desc || "" : "";
-        document.getElementById("ideia-canal").value = ideia ? ideia.canal || "" : "";
-        document.getElementById("ideia-formato").value = ideia ? ideia.formato || "" : "";
-        document.getElementById("ideia-tags").value = ideia ? (ideia.tags || []).join(", ") : "";
-        document.getElementById("ideia-potencial").value = ideia ? ideia.potencial || "medio" : "medio";
-        document.getElementById("ideia-status-select").value = ideia ? ideia.status || "nova" : "nova";
-        document.getElementById("ideia-prox").value = ideia ? ideia.proximoPasso || "" : "";
-        document.getElementById("ideia-modal").style.display = "flex";
-    }
-
-    function saveIdeiaFromModal() {
-        const titulo = document.getElementById("ideia-titulo").value.trim();
-        if (!titulo) { showToast("Título obrigatório"); return; }
-        const ideia = {
-            id: editingIdeiaId || null,
-            titulo: titulo,
-            desc: document.getElementById("ideia-desc").value,
-            canal: document.getElementById("ideia-canal").value,
-            formato: document.getElementById("ideia-formato").value,
-            tags: document.getElementById("ideia-tags").value.split(',').map(s=>s.trim()).filter(s=>s),
-            potencial: document.getElementById("ideia-potencial").value,
-            status: document.getElementById("ideia-status-select").value,
-            proximoPasso: document.getElementById("ideia-prox").value
-        };
-        saveIdeia(ideia);
-        closeModal();
-        showToast("Ideia salva!");
-    }
-
-    // --- FILTRO DE TAGS (para grade) ---
-    function updateFilterUI() {
-        const container = document.getElementById("active-tags-filter");
-        const allTags = new Set();
-        const grade = ensureMonth(currentNichoId, currentAnoMes);
-        for (let canal in grade) {
-            for (let dia in grade[canal]) {
-                (grade[canal][dia].tags || []).forEach(t => allTags.add(t));
-            }
-        }
-        const tagsArray = Array.from(allTags);
-        container.innerHTML = tagsArray.map(tag => `
-            <button class="tag-chip" data-tag="${tag}" style="background:${activeTagFilter===tag?'#FF9F4A':'#3A3A4A'}">#${escapeHtml(tag)}</button>
-        `).join("");
-        document.querySelectorAll("[data-tag]").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const tag = btn.getAttribute("data-tag");
-                activeTagFilter = (activeTagFilter === tag) ? "" : tag;
-                updateFilterUI();
-                render();
-            });
-        });
-    }
-
-    // --- SALVAMENTO LOCAL / NUVEM ---
+    // Persistência
     function saveToLocal() {
-        localStorage.setItem("cronograma_avancado", JSON.stringify(data));
+        localStorage.setItem("kanban_conteudo", JSON.stringify({ cards: data.cards }));
     }
+
     function loadFromLocal() {
-        const saved = localStorage.getItem("cronograma_avancado");
+        const saved = localStorage.getItem("kanban_conteudo");
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                data = parsed;
-                if (!data.ideias) data.ideias = {};
-                if (!data.nichos || data.nichos.length === 0) initDefaultData();
-            } catch(e) { initDefaultData(); }
+                data.cards = parsed.cards || [];
+            } catch(e) { initMockData(); }
         } else {
-            initDefaultData();
+            initMockData();
         }
     }
-    function initDefaultData() {
-        data = {
-            nichos: [
-                { id: "n1", nome: "PetShop & Banho Tosa", canais: ["YouTube", "Shots", "Instagram"] },
-                { id: "n2", nome: "Dono de PetShop", canais: ["YouTube", "TikTok", "Blog"] }
-            ],
-            conteudos: {},
-            ideias: {
-                "n1": [
-                    { id: "i1", titulo: "Entrevista com tosador profissional", desc: "Dicas de segurança", canal: "YouTube", formato: "Vídeo longo", tags: ["entrevista","dicas"], potencial: "alto", status: "nova", proximoPasso: "Pesquisar convidado", criadoEm: new Date().toISOString() },
-                    { id: "i2", titulo: "Reels: antes e depois do pet", desc: "Mostrar transformação", canal: "Instagram", formato: "Reels", tags: ["engajamento"], potencial: "medio", status: "dev", proximoPasso: "Pedir autorização de clientes" }
-                ],
-                "n2": [
-                    { id: "i3", titulo: "Planilha de controle de estoque", desc: "Template para petshop", canal: "Blog", formato: "PDF", tags: ["ferramenta"], potencial: "alto", status: "nova", proximoPasso: "Criar no Google Sheets" }
-                ]
-            }
-        };
-        saveToLocal();
+
+    // Utilitários
+    function getToday() {
+        return new Date().toISOString().slice(0,10);
     }
+
+    function isOverdue(card) {
+        if (!card.data || card.status === "postado") return false;
+        return card.data < getToday();
+    }
+
+    function getAllTags() {
+        const tagsSet = new Set();
+        data.cards.forEach(c => c.tags.forEach(t => tagsSet.add(t)));
+        return Array.from(tagsSet).sort();
+    }
+
+    // Filtro de cards para exibir nas colunas
+    function getCardsForColumn(status) {
+        let filtered = data.cards.filter(c => c.status === status);
+        // Coluna de ideias: mostra TODAS as ideias, independente do canal selecionado (banco global)
+        if (status === "ideia") {
+            // sem filtro de canal
+        } else {
+            // Para gravar e postado, filtra pelo canal atual
+            filtered = filtered.filter(c => c.canal === currentCanal);
+            // Filtro por mês/ano (apenas se card tem data)
+            filtered = filtered.filter(c => {
+                if (!c.data) return true; // cards sem data aparecem em qualquer mês
+                const [ano, mes] = c.data.split("-");
+                return `${ano}-${mes}` === currentAnoMes;
+            });
+        }
+        // Filtro por tag
+        if (activeTagFilter) {
+            filtered = filtered.filter(c => c.tags.includes(activeTagFilter));
+        }
+        // Ordenar por data (mais antiga primeiro para gravar, mais nova para postado)
+        filtered.sort((a,b) => (a.data || "9999-12-31").localeCompare(b.data || "9999-12-31"));
+        return filtered;
+    }
+
+    // Renderização do Kanban
+    function renderKanban() {
+        const board = document.getElementById("kanban-board");
+        const columns = [
+            { status: "ideia", title: "💡 Ideias (banco global)", color: "#FFB347" },
+            { status: "gravar", title: "🎬 A gravar", color: "#FF8C42" },
+            { status: "postado", title: "✅ Postado", color: "#4CAF50" }
+        ];
+
+        board.innerHTML = columns.map(col => {
+            const cards = getCardsForColumn(col.status);
+            return `
+                <div class="column" data-status="${col.status}">
+                    <div class="column-header" style="border-bottom-color: ${col.color};">
+                        <span>${col.title}</span>
+                        <span>${cards.length}</span>
+                    </div>
+                    <div class="column-cards" data-status="${col.status}" id="column-${col.status}">
+                        ${cards.map(card => renderCard(card)).join('')}
+                        ${col.status === "ideia" ? `<div class="add-card-btn" onclick="openCardModal()">+ Nova ideia</div>` : ''}
+                        ${col.status === "gravar" ? `<div class="add-card-btn" onclick="openCardModal('gravar')">+ Agendar novo</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Reatribuir eventos e drag & drop
+        attachCardEvents();
+        attachDragAndDrop();
+    }
+
+    function renderCard(card) {
+        const dataFormatada = card.data ? new Date(card.data).toLocaleDateString('pt-BR') : '📅 Sem data';
+        const overdueClass = isOverdue(card) ? 'overdue' : '';
+        const canalExibido = card.canal ? `📺 ${card.canal}` : '💡 Ideia geral';
+        return `
+            <div class="card ${overdueClass}" draggable="true" data-id="${card.id}" data-status="${card.status}">
+                <div class="card-title">${escapeHtml(card.titulo)}</div>
+                <div class="card-meta">
+                    <span>${dataFormatada}</span>
+                    <span>${canalExibido}</span>
+                </div>
+                <div class="card-tags">
+                    ${card.tags.map(tag => `<span class="tag" data-tag="${tag}">#${escapeHtml(tag)}</span>`).join('')}
+                </div>
+                ${card.desc ? `<div style="font-size:11px; color:#AAA; margin-top:4px;">${escapeHtml(card.desc.substring(0,60))}${card.desc.length>60?'…':''}</div>` : ''}
+                <div class="card-actions">
+                    <button class="edit-card" data-id="${card.id}">✏️ Editar</button>
+                    ${card.status === "ideia" ? `<button class="agendar-card" data-id="${card.id}">📅 Agendar</button>` : ''}
+                    ${card.status === "gravar" ? `<button class="postar-card" data-id="${card.id}">✅ Postar</button>` : ''}
+                    <button class="delete-card" data-id="${card.id}">🗑</button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Eventos de clique nos botões
+    function attachCardEvents() {
+        // Editar
+        document.querySelectorAll(".edit-card").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute("data-id");
+                const card = data.cards.find(c => c.id === id);
+                if (card) openCardModal(null, card);
+            });
+        });
+        // Agendar (move ideia para gravar, pede data e canal)
+        document.querySelectorAll(".agendar-card").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute("data-id");
+                const card = data.cards.find(c => c.id === id);
+                if (card) {
+                    let dataAgend = prompt("Data (YYYY-MM-DD):", new Date().toISOString().slice(0,10));
+                    if (dataAgend && /^\d{4}-\d{2}-\d{2}$/.test(dataAgend)) {
+                        let canal = prompt("Canal (YouTube, Shots, Instagram, TikTok):", card.canal || currentCanal);
+                        if (canal && ["YouTube","Shots","Instagram","TikTok"].includes(canal)) {
+                            card.data = dataAgend;
+                            card.canal = canal;
+                            card.status = "gravar";
+                            saveToLocal();
+                            renderKanban();
+                            showToast("Ideia agendada!");
+                        } else showToast("Canal inválido");
+                    } else if (dataAgend) showToast("Formato de data inválido (YYYY-MM-DD)");
+                }
+            });
+        });
+        // Marcar como postado
+        document.querySelectorAll(".postar-card").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute("data-id");
+                const card = data.cards.find(c => c.id === id);
+                if (card) {
+                    card.status = "postado";
+                    saveToLocal();
+                    renderKanban();
+                    showToast("✅ Marcado como postado!");
+                }
+            });
+        });
+        // Excluir
+        document.querySelectorAll(".delete-card").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (confirm("Excluir este conteúdo?")) {
+                    const id = btn.getAttribute("data-id");
+                    data.cards = data.cards.filter(c => c.id !== id);
+                    saveToLocal();
+                    renderKanban();
+                    updateTagFilters();
+                    showToast("Removido");
+                }
+            });
+        });
+        // Clique nas tags (filtrar)
+        document.querySelectorAll(".tag").forEach(tagEl => {
+            tagEl.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const tag = tagEl.getAttribute("data-tag");
+                if (tag) {
+                    activeTagFilter = (activeTagFilter === tag) ? "" : tag;
+                    updateTagFilters();
+                    renderKanban();
+                }
+            });
+        });
+    }
+
+    // Drag & Drop
+    function attachDragAndDrop() {
+        const cards = document.querySelectorAll(".card");
+        cards.forEach(card => {
+            card.addEventListener("dragstart", handleDragStart);
+            card.addEventListener("dragend", handleDragEnd);
+        });
+
+        const columns = document.querySelectorAll(".column-cards");
+        columns.forEach(col => {
+            col.addEventListener("dragover", handleDragOver);
+            col.addEventListener("drop", handleDrop);
+        });
+    }
+
+    let draggedCardId = null;
+    function handleDragStart(e) {
+        draggedCardId = e.target.closest(".card").getAttribute("data-id");
+        e.dataTransfer.setData("text/plain", draggedCardId);
+        e.target.closest(".card").classList.add("dragging");
+    }
+    function handleDragEnd(e) {
+        document.querySelectorAll(".card").forEach(c => c.classList.remove("dragging"));
+        draggedCardId = null;
+    }
+    function handleDragOver(e) {
+        e.preventDefault();
+    }
+    function handleDrop(e) {
+        e.preventDefault();
+        const targetColumn = e.target.closest(".column-cards");
+        if (!targetColumn) return;
+        const newStatus = targetColumn.getAttribute("data-status");
+        const draggedId = draggedCardId || e.dataTransfer.getData("text/plain");
+        if (!draggedId) return;
+        const card = data.cards.find(c => c.id === draggedId);
+        if (!card) return;
+        if (card.status !== newStatus) {
+            // Mudança de status
+            card.status = newStatus;
+            // Se for para "gravar" e não tiver data, pedir data
+            if (newStatus === "gravar" && !card.data) {
+                let dataAgend = prompt("Data para gravação (YYYY-MM-DD):", new Date().toISOString().slice(0,10));
+                if (dataAgend && /^\d{4}-\d{2}-\d{2}$/.test(dataAgend)) card.data = dataAgend;
+                else card.data = "";
+            }
+            saveToLocal();
+            renderKanban();
+            showToast(`Movido para ${newStatus === "ideia" ? "Ideias" : newStatus === "gravar" ? "A gravar" : "Postado"}`);
+        } else {
+            // Reordenar dentro da mesma coluna (opcional: implementar ordem manual)
+            // Por simplicidade, mantemos a ordem default (por data), mas o usuário pode arrastar para reordenar
+            // Vamos implementar a reordenação manual
+            const columnCards = Array.from(targetColumn.querySelectorAll(".card"));
+            const draggedElement = document.querySelector(`.card[data-id="${draggedId}"]`);
+            const dropIndex = columnCards.findIndex(c => c === e.target.closest(".card"));
+            if (dropIndex !== -1 && draggedElement) {
+                // Encontrar posição atual do card no array de cards do status atual
+                const cardsInColumn = getCardsForColumn(card.status);
+                const currentIndex = cardsInColumn.findIndex(c => c.id === draggedId);
+                if (currentIndex !== -1 && dropIndex !== -1 && currentIndex !== dropIndex) {
+                    // Reordenar o array global? Mais complexo. Para simplificar, armazenamos ordem manual em uma propriedade "ordem"
+                    // Mas para não complicar, pulamos reordenação por enquanto. A funcionalidade principal já está boa.
+                }
+            }
+        }
+    }
+
+    // Modal de card
+    function openCardModal(statusSugerido = null, card = null) {
+        editingCardId = card ? card.id : null;
+        document.getElementById("modal-title").innerText = card ? "Editar conteúdo" : "Novo conteúdo";
+        document.getElementById("card-titulo").value = card ? card.titulo : "";
+        document.getElementById("card-data").value = card ? (card.data || "") : "";
+        document.getElementById("card-canal").value = card ? (card.canal || "") : "";
+        document.getElementById("card-tags-input").value = card ? card.tags.join(", ") : "";
+        document.getElementById("card-desc").value = card ? card.desc || "" : "";
+        let status = card ? card.status : (statusSugerido === "gravar" ? "gravar" : "ideia");
+        document.getElementById("card-status").value = status;
+        updateTagSuggestions("");
+        document.getElementById("card-modal").style.display = "flex";
+    }
+
+    function updateTagSuggestions(inputText) {
+        const container = document.getElementById("tag-suggestions");
+        const currentTagsInput = document.getElementById("card-tags-input").value;
+        const lastHash = currentTagsInput.split(",").pop().trim();
+        let search = lastHash.startsWith("#") ? lastHash.slice(1) : "";
+        const allTags = getAllTags();
+        const matches = allTags.filter(t => t.toLowerCase().includes(search.toLowerCase())).slice(0,5);
+        if (matches.length === 0 || search === "") {
+            container.innerHTML = "";
+            return;
+        }
+        container.innerHTML = matches.map(tag => `<span class="sugg-tag" data-tag="${tag}">#${escapeHtml(tag)}</span>`).join("");
+        document.querySelectorAll(".sugg-tag").forEach(el => {
+            el.addEventListener("click", () => {
+                const tag = el.getAttribute("data-tag");
+                let newTags = currentTagsInput.replace(/#[^,]*$/, `#${tag}`);
+                if (!newTags.endsWith(",") && newTags.trim() !== "") newTags += ", ";
+                document.getElementById("card-tags-input").value = newTags;
+                container.innerHTML = "";
+            });
+        });
+    }
+
+    function saveCard() {
+        const titulo = document.getElementById("card-titulo").value.trim();
+        if (!titulo) { showToast("Título obrigatório"); return; }
+        const dataCard = document.getElementById("card-data").value;
+        const canal = document.getElementById("card-canal").value;
+        const tagsStr = document.getElementById("card-tags-input").value;
+        let tags = tagsStr.split(",").map(s => s.trim().replace(/^#/, "")).filter(s => s);
+        const desc = document.getElementById("card-desc").value;
+        const status = document.getElementById("card-status").value;
+        if (editingCardId) {
+            const card = data.cards.find(c => c.id === editingCardId);
+            if (card) {
+                card.titulo = titulo;
+                card.data = dataCard;
+                card.canal = canal || null;
+                card.tags = tags;
+                card.desc = desc;
+                card.status = status;
+            }
+        } else {
+            const newId = Date.now() + "_" + Math.random();
+            data.cards.push({
+                id: newId,
+                titulo: titulo,
+                data: dataCard,
+                canal: canal || null,
+                tags: tags,
+                desc: desc,
+                status: status
+            });
+        }
+        saveToLocal();
+        closeModal();
+        renderKanban();
+        updateTagFilters();
+        showToast("Salvo!");
+    }
+
+    function closeModal() {
+        document.getElementById("card-modal").style.display = "none";
+    }
+
+    // Filtro de tags na barra superior
+    function updateTagFilters() {
+        const container = document.getElementById("tag-filters");
+        const allTags = getAllTags();
+        container.innerHTML = allTags.map(tag => `
+            <span class="tag-filter ${activeTagFilter === tag ? 'active' : ''}" data-tag="${tag}">#${escapeHtml(tag)}</span>
+        `).join("");
+        document.querySelectorAll(".tag-filter").forEach(el => {
+            el.addEventListener("click", () => {
+                const tag = el.getAttribute("data-tag");
+                activeTagFilter = (activeTagFilter === tag) ? "" : tag;
+                updateTagFilters();
+                renderKanban();
+            });
+        });
+    }
+
+    // Mês
+    function changeMonth(delta) {
+        let [ano, mes] = currentAnoMes.split("-").map(Number);
+        let novaData = new Date(ano, mes-1 + delta, 1);
+        currentAnoMes = `${novaData.getFullYear()}-${(novaData.getMonth()+1).toString().padStart(2,'0')}`;
+        document.getElementById("month-year").innerText = new Date(currentAnoMes + "-01").toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        renderKanban();
+    }
+
+    function renderCanalSelector() {
+        const canais = ["YouTube", "Shots", "Instagram", "TikTok"];
+        const container = document.getElementById("canal-selector");
+        container.innerHTML = canais.map(c => `<button class="canal-btn ${currentCanal === c ? 'active' : ''}" data-canal="${c}">${c}</button>`).join('');
+        document.querySelectorAll(".canal-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                currentCanal = btn.getAttribute("data-canal");
+                renderCanalSelector();
+                renderKanban();
+            });
+        });
+    }
+
+    // Export / Import
     function exportData() {
-        const jsonStr = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonStr], {type: "application/json"});
+        const exportObj = { cards: data.cards };
+        const blob = new Blob([JSON.stringify(exportObj, null, 2)], {type: "application/json"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `cronograma_${currentNichoId}.json`;
+        a.download = `kanban_${currentCanal}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        showToast("Exportado!");
+        showToast("Exportado");
     }
     function importData(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const imported = JSON.parse(e.target.result);
-                data = imported;
-                if (!data.ideias) data.ideias = {};
+                data.cards = imported.cards || [];
                 saveToLocal();
-                render();
-                showToast("Importado com sucesso!");
+                renderCanalSelector();
+                renderKanban();
+                updateTagFilters();
+                showToast("Importado!");
             } catch(err) { showToast("Arquivo inválido"); }
         };
         reader.readAsText(file);
     }
-    let jsonbinConfig = { apiKey: "", binId: "" };
-    try { const cfg = JSON.parse(localStorage.getItem("hub_cfg")||"{}"); jsonbinConfig.apiKey = cfg.apiKey||""; jsonbinConfig.binId = cfg.binId||""; } catch(e) {}
-    async function saveToCloud() {
-        if (!jsonbinConfig.apiKey) { promptApiKey(); return; }
-        showToast("Salvando na nuvem...");
-        try {
-            let url, method, headers={'Content-Type':'application/json','X-Master-Key':jsonbinConfig.apiKey,'X-Bin-Private':'false'};
-            if(jsonbinConfig.binId){ url=`https://api.jsonbin.io/v3/b/${jsonbinConfig.binId}`; method='PUT'; }
-            else { url='https://api.jsonbin.io/v3/b'; method='POST'; headers['X-Bin-Name']='cronograma-ideias'; }
-            const res = await fetch(url,{method,headers,body:JSON.stringify(data)});
-            const result = await res.json();
-            if(!jsonbinConfig.binId && result.metadata?.id){ jsonbinConfig.binId = result.metadata.id; localStorage.setItem("hub_cfg", JSON.stringify(jsonbinConfig)); }
-            showToast("✅ Nuvem salva!");
-        } catch(e) { showToast("Erro nuvem"); }
-    }
-    async function loadFromCloud() {
-        if (!jsonbinConfig.apiKey || !jsonbinConfig.binId) { promptApiKey(); return; }
-        showToast("Carregando...");
-        try {
-            const res = await fetch(`https://api.jsonbin.io/v3/b/${jsonbinConfig.binId}/latest`,{headers:{'X-Master-Key':jsonbinConfig.apiKey}});
-            const result = await res.json();
-            data = result.record;
-            if (!data.ideias) data.ideias = {};
-            saveToLocal();
-            render();
-            showToast("Carregado da nuvem!");
-        } catch(e) { showToast("Falha ao carregar"); }
-    }
-    function promptApiKey() {
-        let key = prompt("Insira sua API Key do JSONBin.io:");
-        if(key) { jsonbinConfig.apiKey = key; localStorage.setItem("hub_cfg", JSON.stringify(jsonbinConfig)); showToast("API Key salva"); }
-    }
-
-    function addNicho() {
-        const nome = prompt("Nome do novo nicho:");
-        if(!nome) return;
-        const canaisStr = prompt("Canais (separados por vírgula):", "YouTube, Instagram");
-        const canais = canaisStr.split(",").map(s=>s.trim()).filter(s=>s);
-        const newId = "n"+Date.now();
-        data.nichos.push({ id: newId, nome, canais });
-        data.conteudos[newId] = {};
-        if (!data.ideias) data.ideias = {};
-        data.ideias[newId] = [];
-        saveToLocal();
-        currentNichoId = newId;
-        render();
-    }
-    function changeMonth(delta) {
-        let [ano, mes] = currentAnoMes.split("-").map(Number);
-        let novaData = new Date(ano, mes-1 + delta, 1);
-        currentAnoMes = `${novaData.getFullYear()}-${(novaData.getMonth()+1).toString().padStart(2,'0')}`;
-        render();
-    }
-    function newEmptyMonth() {
-        if(confirm("Criar novo mês vazio?")) {
-            const [ano, mes] = currentAnoMes.split("-");
-            const novoMes = `${ano}-${mes}`;
-            const nicho = data.nichos.find(n=>n.id===currentNichoId);
-            const gradeVazia = {};
-            nicho.canais.forEach(canal => {
-                gradeVazia[canal] = {};
-                for(let d=1; d<=31; d++) gradeVazia[canal][d] = { titulo: "", tags: [], status: "ideia", desc: "", link: "", duracao: "" };
-            });
-            data.conteudos[currentNichoId][novoMes] = gradeVazia;
-            saveToLocal();
-            render();
-        }
-    }
 
     function showToast(msg) {
-        const toast = document.getElementById("toast-msg");
+        const toast = document.getElementById("toast");
         toast.innerText = msg;
         toast.style.display = "block";
         setTimeout(() => toast.style.display = "none", 2000);
     }
     function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    function getStatusClass(s) { if(s==='postado') return 'status-postado'; if(s==='gravar') return 'status-gravar'; return 'status-ideia'; }
-    function getStatusLabel(s) { if(s==='postado') return '✅ Postado'; if(s==='gravar') return '🎬 A gravar'; return '💭 Ideia'; }
-    function getStatusIdeiaLabel(s) {
-        if(s==='nova') return '💡 Nova';
-        if(s==='dev') return '🔄 Em desenvolvimento';
-        if(s==='agend') return '📅 Agendada';
-        return '✅ Publicada';
-    }
 
-    // Eventos principais
+    // Eventos iniciais
     document.getElementById("prev-month").onclick = () => changeMonth(-1);
     document.getElementById("next-month").onclick = () => changeMonth(1);
-    document.getElementById("new-month").onclick = newEmptyMonth;
-    document.getElementById("add-nicho-btn").onclick = addNicho;
     document.getElementById("export-json").onclick = exportData;
     document.getElementById("import-json").onclick = () => { let input = document.createElement("input"); input.type="file"; input.accept=".json"; input.onchange = e => importData(e.target.files[0]); input.click(); };
-    document.getElementById("save-cloud").onclick = saveToCloud;
-    document.getElementById("load-cloud").onclick = loadFromCloud;
-    document.getElementById("clear-filters").onclick = () => { activeTagFilter = ""; updateFilterUI(); render(); };
-    document.querySelectorAll(".view-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            currentView = btn.getAttribute("data-view");
-            document.querySelectorAll(".view-btn").forEach(b=>b.classList.remove("active"));
-            btn.classList.add("active");
-            render();
-        });
-    });
     document.getElementById("modal-cancel").onclick = closeModal;
-    document.getElementById("modal-save").onclick = saveModal;
-    document.getElementById("ideia-cancel").onclick = closeModal;
-    document.getElementById("ideia-save").onclick = saveIdeiaFromModal;
+    document.getElementById("modal-save").onclick = saveCard;
+    document.getElementById("clear-filter").onclick = () => { activeTagFilter = ""; updateTagFilters(); renderKanban(); };
+    document.getElementById("card-tags-input").addEventListener("input", (e) => updateTagSuggestions(e.target.value));
 
-    // marcar a visualização ativa inicial
-    document.querySelector(".view-btn[data-view='semanal']").classList.add("active");
     loadFromLocal();
-    render();
+    renderCanalSelector();
+    renderKanban();
+    updateTagFilters();
 </script>
 </body>
 </html>
